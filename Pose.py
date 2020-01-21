@@ -15,8 +15,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 try:
     if platform == "win32":
         #对于windows系统导入dll库
-        sys.path.append(dir_path+'../python/openpose/Release');    #路径根据文件所在位置
-        os.environ['path'] = os.environ['path'] + ';' +dir_path + '../x64/Release;'+ dir_path +'../bin;'
+        sys.path.append(dir_path+'./../python/openpose/Release');    #路径根据文件所在位置
+        os.environ['path'] = os.environ['path'] + ';' +dir_path + './../x64/Release;'+ dir_path +'./../bin;'
         #上面路径需要根据openpose文件夹的位置来决定
         import pyopenpose as op
     else:
@@ -39,7 +39,7 @@ class Pose:
         args = parser.parse_known_args()
 
         params=dict()
-        params["model_folder"]='./models/'#具体情况
+        params["model_folder"]='./../models/'#具体情况
         params["number_people_max"] = 1
         params["model_pose"] = "BODY_25"
 
