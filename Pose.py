@@ -15,13 +15,13 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 try:
     if platform == "win32":
         #对于windows系统导入dll库
-        sys.path.append(dir_path+'./python/openpose/Release');    #路径根据文件所在位置
-        os.environ['path'] = os.environ['path'] + ';' +dir_path + './x64/Release;'+ dir_path +'./bin;'
+        sys.path.append(dir_path+'../python/openpose/Release');    #路径根据文件所在位置
+        os.environ['path'] = os.environ['path'] + ';' +dir_path + '../x64/Release;'+ dir_path +'../bin;'
         #上面路径需要根据openpose文件夹的位置来决定
         import pyopenpose as op
     else:
         #不是windows系统则使用python文件夹里的pyd
-        sys.path.append('./python');
+        sys.path.append('../python');
         from openpose import pyopenpose as op
 except ImportError as e:
      print('Error: OpenPose library could not be found. Did you enable `BUILD_PYTHON` in CMake and have this Python script in the right folder?')
