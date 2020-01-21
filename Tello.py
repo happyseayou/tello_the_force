@@ -6,7 +6,7 @@ import cv2
 import numpy
 import time
 from Pose import *
-
+from UI import FPS
 
 class Tello:
 
@@ -88,18 +88,20 @@ if __name__=='__main__':
 
     tello=Tello()
     my_pose=Pose()
-
+    fps=FPS()
     frame_skip = 300
     
     for frame in tello.container.decode(video=0):
         if 0 < frame_skip:
             frame_skip = frame_skip - 1
             continue
+        fps.update()
         start_time = time.time()
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         image = cv2.resize(image,(640,480))
         show=my_pose.get_kp(image)
         cv2.circle(image, (show[0][0], show[0][1]), 37, (0, 0, 255), -1)
+        fps.display(image)
         cv2.imshow('Original', image)
 
         if frame.time_base < 1.0/60:
