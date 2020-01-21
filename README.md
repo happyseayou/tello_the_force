@@ -2,7 +2,7 @@
 使用“原力”控制tello
 
 # 感谢
-这个东东是基于https://github.com/geaxgx/tello-openpose开发的，重新设计了调用逻辑，使用了他的class FPS和class HUB（目前的进度），拆分出更多模块，后续可以更方便的开发出新模块（只需要修改com.py）
+这个东东是基于 https://github.com/geaxgx/tello-openpose 开发的，重新设计了调用逻辑，使用了他的class FPS和class HUB（目前的进度），拆分出更多模块，后续可以更方便的开发出新模块（只需要修改com.py）
 
 # 需要的库
 参考tellostate.yaml   //conda 环境配置
