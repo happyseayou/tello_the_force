@@ -106,7 +106,7 @@ if __name__=='__main__':
         angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
         angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
         #if angle567:
-        print(str(angle234)+' '+str(angle567))
+        print('左'+str(angle234)+' '+'右'+str(angle567))
         #else:
           #  print('ooooops')
         if show[2][0]:#值判断一个就好
