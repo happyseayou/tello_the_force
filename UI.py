@@ -1,6 +1,7 @@
 #根据opese的数据和tello的图像把画面显示出来添加紧急停机按钮
 import cv2
 import time
+import winsound
 
 class FPS: #这个模块摘自tello_openpose
     def __init__(self):
@@ -25,14 +26,59 @@ class FPS: #这个模块摘自tello_openpose
         cv2.putText(win,f"FPS={self.get():.2f}",orig,font,size,color,thickness)
 
 
-class UID():
+class player():
+    def __init__(self):
+
+    def sound(self,mode):
+        if mode == 0:
+            winsound.PlaySound('playsounds\\普通锁定.wav',winsound.SND_ALIAS)
+        elif mode == 1:
+            winsound.PlaySound('playsounds\\跟随模式.wav',winsound.SND_ALIAS)
+        elif mode == 2:
+            winsound.PlaySound('playsounds\\平行跟随.wav',winsound.SND_ALIAS)
+        elif mode == 3:
+            winsound.PlaySound('playsounds\\目标丢失.wav',winsound.SND_ALIAS)
+        elif mode == 4:
+            winsound.PlaySound('playsounds\\降落.wav',winsound.SND_ALIAS)
+        elif mode == 5:
+            winsound.PlaySound('playsounds\\即将降落.wav',winsound.SND_ALIAS)
+        elif mode == 6:
+            winsound.PlaySound('playsounds\\抛出即可飞行.wav',winsound.SND_ALIAS)
+        elif mode == 7:
+            winsound.PlaySound('playsounds\\起飞.wav',winsound.SND_ALIAS)
+        elif mode == 8:
+            winsound.PlaySound('playsounds\\紧急停机.wav',winsound.SND_ALIAS)
+        elif mode == 9:
+            winsound.PlaySound('playsounds\\拍照.wav',winsound.SND_ALIAS)
+        elif mode == 10:
+            winsound.PlaySound('playsounds\\起飞失败.wav',winsound.SND_ALIAS)
+        elif mode == 11:
+            winsound.PlaySound('playsounds\\起飞成功.wav',winsound.SND_ALIAS)
+        elif mode == 12:
+            winsound.PlaySound('playsounds\\退出平行跟随.wav',winsound.SND_ALIAS)
+        elif mode == 13:
+            winsound.PlaySound('playsounds\\退出跟随模式.wav',winsound.SND_ALIAS)
+        elif mode == 14:
+            winsound.PlaySound('playsounds\\接近中.wav',winsound.SND_ALIAS)
+        elif mode == 15:
+            winsound.PlaySound('playsounds\\低电量警报.wav',winsound.SND_ALIAS)  
+
+        
+
+            
+
+
+
+
+class UID():#显示类
 
     def __init__(self):
         self.fps=FPS()
 
-    def show(self,image,kp,flightstate,flightdata):
+    def show(self,image,kp,flightstate):
+
         self.drawer(image,kp)
-        image=self.hubw(image,flightdata,flightdata)
+        image=self.hubw(image,flightdata)
         image=cv2.resize(image,(960,720))
         cv2.imshow('tello',image)
 
@@ -56,7 +102,7 @@ class UID():
                 cv.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
         #这里有点绕，就是标记出线段的id然后遍历所有io带入对应的(x1,y1)(x2,y2)
     
-    def hubw(self,image,flightdata,flightstate):
+    def hubw(self,image,flightdata):
         #这里摘自tello_openpose
         class hud:
             def __init__(self,def_color=(255,170,0)):
@@ -73,12 +119,29 @@ class UID():
                     i+=1
         hub=hud()
 
-        #flightdata[] 0=battary 1=flymode 3=timer
-        #flightstate[]  还没定义因为com模块还没写
-        #后面完善add()
+        #self.state=[0,0,0,0,0,0,0,0,0,0]
+        #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 锁定距离 实时距离
         hud.add(datetime.datetime.now().strftime('%H:%M:%S'))
         hud.add(f"FPS {self.fps.get():.2f}")
-        hud.add(f"BAT {flightdata[0]}")
+        if flightdata[0]!=0:
+            hud.add(f"flying")
+        else:
+            hud.add(f"nofly}")
+        hud.add(f"bat {flightstate[1]}")
+        
+        if:
+            hud.add(f"fmode {flightstate[2]}")
+        if:
+            hud.add(f"pose {flightstate[3]}")
+
+        hud.add(f"thr {flightstate[4]}")
+        hud.add(f"pith {flightstate[5]}")
+        hud.add(f"roll {flightstate[6]}")
+        hud.add(f"yaw {flightstate[7]}")
+        hud.add(f"lockd {flightstate[8]}")
+        hud.add(f"dist {flightstate[9]}")
+       
+        
 
         hud.draw(image)
         return image

@@ -21,10 +21,11 @@ def main():
         kp=pose.get_kp(image)
         comd=com.get_comd(kp)
         tello.send_comd(comd)
-        flightstate=com.get_track_p()#命令状态
         flightdata=tello.send_data()#飞行数据
-        ui.show(image,kp,flightstate,flightdata)
-        cv2.imshow('Original', image)
+        com.read_tello_data(flightdata)#飞控获取数据用于判断指令
+        flightstate=com.get_state()#命令状态
+        ui.show(image,kp,flightstate)#显示并负责播放声音
+        cv2.imshow('tello', image)
 
 
         if frame.time_base < 1.0/60:

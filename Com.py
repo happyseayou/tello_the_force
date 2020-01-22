@@ -16,8 +16,15 @@ def angle(A,B,C):
 
 class Com:
     def __init__(self):
-        self.is_fly=None
+        #飞行数据与状态
+        self.isfly=None
         self.flymode=None
+        self.isfly=None
+        self.batry=None
+        self.throwflytimer=None
+        self.state=[0,0,0,0,0,0,0,0,0,0,0]
+        self.comd=None 
+        #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
         self.posespeed=30
         #定义屏幕中的定点
@@ -83,7 +90,7 @@ class Com:
         self.midp=None
         self.neck=None
 
-        self.is_fly=None
+        self.isfly=None
         self.flymode=None
         self.pose=None
 
@@ -205,7 +212,7 @@ class Com:
         if self.nose and self.letfear and self.rightear and self.neck and self.letfshd and self.rightshd and self.letfhand and self.lerfhandmid and self.righthand and self.righthandmid:
             #第0层判断是否满足判断条件，如果没有同时存在这些点则不做任何指令切换或动作
             #判断pose左右手操作互斥
-            if self.is_fly:
+            if self.isfly:
                 if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]<self.neck[0]): #右手举起了决定左右飘
                     if self.angleright<=90:
                         self.pose=4
@@ -273,10 +280,10 @@ class Com:
             self.flymode=3
 
         #m没有起飞时则判断起飞方式
-        if self.is_fly is None:
-            if :#抛飞
+        if self.isfly is None:
+            if :#抛飞#如果没有抛起来怎么办
 
-            if :#起飞
+            if :#起飞#判断是否起飞成功？？？
         
         if：#紧急停机通过键盘键位，最后一个修改，等级最高
            
@@ -298,7 +305,8 @@ class Com:
         #        5靠近降落在手掌，所有参数清零
         #        6抛飞，
         #        7起飞，
-        #        8紧急停机，
+        #        8紧急停机，9拍照，10起飞失败，11起飞成功，12退出平行跟随，
+        #        13退出跟随模式，14接近中，15，低电量警报
             #另外，左右手控制距离和偏转在除丢失模式下任何模式下都可用
             #pose    0无操作
             #        1向前
@@ -310,7 +318,7 @@ class Com:
             self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
             comd[0]=int(self.pid_yaw(xoff))
             comd[3]=int(self.pid_thro(yoff))
-            if self.is_fly:
+            if self.isfly:
                 if self.pose==0:#这层判断用于控制前后左右
                     pass
                 elif self.pose==1:
@@ -341,7 +349,7 @@ class Com:
             elif self.distance_shd and self.lock_distance_sd:
                 comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
 
-            if self.is_fly:
+            if self.isfly:
                 if self.pose==0:#这层判断用于控制前后左右
                     pass
                 elif self.pose==1:
@@ -378,7 +386,7 @@ class Com:
             elif self.distance_shd and self.lock_distance_sd:
                 comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
 
-            if self.is_fly:
+            if self.isfly:
                 if self.pose==0:#这层判断用于控制前后左右
                     pass
                 elif self.pose==1:
@@ -404,7 +412,7 @@ class Com:
         elif self.flymode==4: #        4降落，所有参数清零
             comd[4]=4
             self.reset()
-            self.is_fly=None 
+            
         
         elif self.flymode==5: #        5靠近降落在手掌，所有参数清零
             self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
@@ -418,23 +426,51 @@ class Com:
             if int(self.distance_shd-self.lock_distance_sd)<10:
                 comd[4]=3
                 self.reset()
-                self.is_fly=None 
+               
         
         elif self.flymode==6:#        6抛飞
             comd[4]=2
-            self.is_fly=1
+           # self.is_fly=1   #判断是否起飞成功？？？
             self.flymode=0
 
         elif self.flymode==7:#        7起飞，
             comd[4]=1
-            self.is_fly=1
+            #self.is_fly=1
             self.flymode=0
         
         elif self.flymode==8:#        8紧急停机，
             comd[3]=-100        #暂时没有找到通信协议紧急停机的代码
             self.reset()
-            
+        self.comd = comd   
         return comd
         #comd[0] comd[1] comd[2]  comd[3]  comd[4]
         #旋转     左右    前后      上下     特殊命令
+
+    def get_state(self):#发送状态给ui,所有飞行日志
+        #self.state=[0,0,0,0,0,0,0,0,0,0]
+        #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 锁定距离 实时距离
+        self.state[0]=self.isfly
+        self.state[1]=self.batry
+        self.state[2]=self.flymode
+        self.state[3]=self.pose
+        self.state[4]=self.comd[3]
+        self.state[5]=self.comd[2]
+        self.state[6]=self.comd[1]
+        self.state[7]=self.comd[0]
+        if self.lock_distance_mn and self.distance_midneck:
+            self.state[8]=self.lock_distance_mn
+            self.state[9]=self.distance_midneck
+        elif self.lock_distance_sd and self.distance_shd:
+            self.state[8]=self.lock_distance_sd
+            self.state[9]=self.distance_shd
+        else:
+            self.state[8]='***'
+            self.state[9]='***'
+        state=self.state
+        return state
+
+    def read_tello_data(self,data):
+        self.isfly=data[1]
+        self.batry=data[0]
+        self.throwflytimer=data[2]
 

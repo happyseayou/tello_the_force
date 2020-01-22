@@ -17,7 +17,7 @@ class Tello:
    
         #初始参数
         self.battery=None
-        self.fly_mode=None
+        self.is_fly=None
         self.throw_fly_timer=None
 
         #开始连接飞机
@@ -69,16 +69,18 @@ class Tello:
 
     def flight_data_handler(self,event,sender,data):
         self.battery=data.battery_percentage
-        self.fly_mode=data.fly_mode
+        self.is_fly=data.em_sky
         self.throw_fly_timer=data.throw_fly_timer
         #这个一个接受数据的函数
 
     def send_data(self):#用于发送数据给ui
         bat=self.battery
-        fly=self.fly_mode
+        is_fly=self.is_fly
         tftimer=self.throw_fly_timer
 
-        return bat,fly,tftimer
+        return bat,is_fly,tftimer
+    
+  
 
 
 
@@ -107,6 +109,8 @@ if __name__=='__main__':
         angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
         #if angle567:
         print('左'+str(angle234)+' '+'右'+str(angle567))
+        
+       # print(str(tello.is_fly))
         #else:
           #  print('ooooops')
         if show[2][0]:#值判断一个就好
