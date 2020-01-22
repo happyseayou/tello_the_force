@@ -77,7 +77,6 @@ class Tello:
         bat=self.battery
         is_fly=self.is_fly
         tftimer=self.throw_fly_timer
-
         return bat,is_fly,tftimer
     
   

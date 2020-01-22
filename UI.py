@@ -128,9 +128,39 @@ class UID():#显示类
         else:
             hud.add(f"nofly}")
         hud.add(f"bat {flightstate[1]}")
-        
-        if:
-            hud.add(f"fmode {flightstate[2]}")
+        #flymode 0普通跟踪，只修正偏航
+        #        1跟随模式，修正偏航和锁定距离
+        #        2平行跟随，修正roll和锁定距离
+        #        3丢失目标，保持高度，同时旋转寻找目标，如果超过15秒则降落
+        #        4降落，所有参数清零
+        #        5靠近降落在手掌，所有参数清零
+        #        6抛飞，
+        #        7起飞，
+        #        8紧急停机，9拍照，10起飞失败，11起飞成功，12退出平行跟随，
+        #        13退出跟随模式，14接近中，15，低电量警报
+        if flightdata[2]==0:
+            hud.add(f"普通跟踪")
+        elif flightdata[2]==1:
+            hud.add(f"跟随模式")
+        elif flightdata[2]==2:
+            hud.add(f"平行跟随")
+        elif flightdata[2]==3:
+            hud.add(f"丢失目标")
+        elif flightdata[2]==4:
+            hud.add(f"降落")
+        elif flightdata[2]==5:
+            hud.add(f"手掌降落")
+        elif flightdata[2]==6:
+            hud.add(f"抛飞")
+        elif flightdata[2]==7:
+            hud.add(f"起飞")
+        elif flightdata[2]==8:
+            hud.add(f"紧急停机")
+        #pose    0无操作
+            #        1向前
+            #        2向后
+            #        3向左飘
+            #        4向右
         if:
             hud.add(f"pose {flightstate[3]}")
 
