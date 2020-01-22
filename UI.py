@@ -40,7 +40,8 @@ class UID():
     def drawer(self,image,kp):
         #画点
         for i in [0,1,2,3,4,5,6,7,8,17,18]:
-            cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
+            if k[i][0] and k[i][1]:
+                cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
         #画线
         color=(0,255,0)
         thickness = 1
@@ -51,7 +52,8 @@ class UID():
             y1=kp[linep[i][0]][1]
             x2=kp[linep[i][1]][0]
             y2=kp[linep[i][1]][1]
-            cv.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
+            if x1 and x2 and y1 and y2:
+                cv.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
         #这里有点绕，就是标记出线段的id然后遍历所有io带入对应的(x1,y1)(x2,y2)
     
     def hubw(self,image,flightdata,flightstate):

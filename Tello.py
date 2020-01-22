@@ -8,6 +8,9 @@ import time
 from Pose import *
 from UI import FPS
 
+
+
+
 class Tello:
 
     def __init__(self):
@@ -100,7 +103,24 @@ if __name__=='__main__':
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         image = cv2.resize(image,(640,480))
         show=my_pose.get_kp(image)
-        cv2.circle(image, (show[0][0], show[0][1]), 37, (0, 0, 255), -1)
+        angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
+        angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
+        #if angle567:
+        print(str(angle234)+' '+str(angle567))
+        #else:
+          #  print('ooooops')
+        if show[2][0]:#值判断一个就好
+            cv2.circle(image, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
+        if show[3][0]:
+            cv2.circle(image, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
+        if show[4][0]:
+            cv2.circle(image, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
+        if show[5][0]:#值判断一个就好
+            cv2.circle(image, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
+        if show[6][0]:
+            cv2.circle(image, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
+        if show[7][0]:
+            cv2.circle(image, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
         fps.display(image)
         cv2.imshow('Original', image)
 
