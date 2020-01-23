@@ -76,8 +76,10 @@ class Pose:
         #out = self.datum.cvOutputData
         
         kps = self.datum.poseKeypoints[0]
-        listid=[0,1,2,3,4,5,6,7,8,17,18]#body_25模型关键点
+        listid=[0,1,2,3,4,5,6,7,8,10,17,18]#body_25模型关键点
             #
+        #添加一组获取图片亮度listid[10]
+        #brightness=self.framebightness(frame)
         xy=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
         for i in listid:
             x,y,conf = kps[i]
@@ -87,7 +89,11 @@ class Pose:
             else:
                 xy[i][0]=None       
                 xy[i][1]=None 
+            if i==10:
+                xy[i][0]=xy[i][1]=brightness
         return xy   #xy[i][k]i代表第几个点k代表第几个坐标
+    
+    #def framebightness(self.frame):#获取图片亮度
 
 
         

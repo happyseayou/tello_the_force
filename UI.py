@@ -26,6 +26,7 @@ class FPS: #这个模块摘自tello_openpose
         cv2.putText(win,f"FPS={self.get():.2f}",orig,font,size,color,thickness)
 
 
+        
 class player():
     def __init__(self):
 
@@ -62,9 +63,6 @@ class player():
             winsound.PlaySound('playsounds\\接近中.wav',winsound.SND_ALIAS)
         elif mode == 15:
             winsound.PlaySound('playsounds\\低电量警报.wav',winsound.SND_ALIAS)  
-
-        
-
             
 
 

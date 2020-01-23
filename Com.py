@@ -27,6 +27,8 @@ class Com:
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
         self.posespeed=30
+        #定义亮度
+        self.brightness=None 
         #定义屏幕中的定点
         self.point=[320,240]#固定点
         #初始化pid控制
@@ -143,7 +145,12 @@ class Com:
             self.neck=[kp[1][0],kp[1][1]]
         else:
             self.neck=None
-        
+        #从listid[10]获取亮度
+        if kp[10][0] and kp[10][1]:
+            self.brightness=kp[10][0]
+        else:
+            self.brightness=None 
+
         #计算肩宽和中心点和脖子的长度用于模拟远近
         if self.letfshd and self.rightshd:
             self.distance_shd=distance(self.letfshd,self.rightshd)
