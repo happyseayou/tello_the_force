@@ -6,8 +6,9 @@ import os
 from sys import platform
 import argparse
 #from tello import *
-from UI import FPS
+#from UI import FPS
 from math import atan2, degrees, sqrt,pi
+import numpy as np
 
 
 
@@ -74,26 +75,44 @@ class Pose:
         self.datum.cvInputData=frame
         self.opWrapper.emplaceAndPop([self.datum])
         #out = self.datum.cvOutputData
-        
-        kps = self.datum.poseKeypoints[0]
-        listid=[0,1,2,3,4,5,6,7,8,10,17,18]#body_25模型关键点
-            #
-        #添加一组获取图片亮度listid[10]
-        #brightness=self.framebightness(frame)
         xy=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-        for i in listid:
-            x,y,conf = kps[i]
-            if x!=0 or y!=0:   #允许一个为0，不允许都为0
-                xy[i][0]=int(x)
-                xy[i][1]=int(y)
-            else:
-                xy[i][0]=None       
-                xy[i][1]=None 
-            if i==10:
-                xy[i][0]=xy[i][1]=brightness
+        #添加一组获取图片亮度listid[10]
+        brightness=self.framebightness(frame)
+        try:
+            kps = self.datum.poseKeypoints[0]
+            listid=[0,1,2,3,4,5,6,7,8,10,17,18]#body_25模型关键点,10为亮度
+                #
+           
+            for i in listid:
+                x,y,conf = kps[i]
+                if x!=0 or y!=0:   #允许一个为0，不允许都为0
+                    xy[i][0]=int(x)
+                    xy[i][1]=int(y)
+                else:
+                    xy[i][0]=None       
+                    xy[i][1]=None 
+                if i==10:
+                    xy[i][0]=xy[i][1]=brightness
+        except:
+            for i in range(19):
+                if i==10:
+                    xy[i][0]=xy[i][1]=brightness
+                else:
+                    xy[i][0]=None 
+                    xy[i][1]=None
         return xy   #xy[i][k]i代表第几个点k代表第几个坐标
     
-    #def framebightness(self.frame):#获取图片亮度
+    def framebightness(self,frame):#获取图片亮度，返回按压
+        frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)#灰度图
+        per_image=[]
+        per_image.append(np.mean(frame[0]))
+        brightness=np.mean(per_image)
+        if brightness<50:
+            press=1
+        else:
+            press=0
+        return press
+
 
 
         
@@ -107,13 +126,13 @@ if __name__=='__main__':
 
     video=cv2.VideoCapture(0)
     
-    fps=FPS()
+   # fps=FPS()
     my_pose=Pose()
     while True:
         ok,frame=video.read()
         if not ok:
             break
-        fps.update()
+       # fps.update()
         #frame=cv2.imread("./123.jpg") 
         frame2=frame
         #cv2.imshow("raw",frame)   
@@ -123,7 +142,7 @@ if __name__=='__main__':
         angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
         angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
         #if angle567:
-        print(str(angle234)+' '+str(angle567))
+        print(str(angle234)+' '+str(angle567)+' '+str(show[10][0]))
         #else:
           #  print('ooooops')
         if show[2][0]:#值判断一个就好
@@ -140,7 +159,7 @@ if __name__=='__main__':
             cv2.circle(frame2, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
         
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
-        fps.display(frame2)
+       # fps.display(frame2)
         frame3=cv2.resize(frame2,(960,720))
         cv2.imshow("raw",frame3) 
         #cv2.imshow("1",show[2])

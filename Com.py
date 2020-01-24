@@ -27,8 +27,8 @@ class Com:
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
         self.posespeed=30
-        #定义亮度
-        self.brightness=None 
+        #定义按压摄像头
+        self.press=None 
         #定义屏幕中的定点
         self.point=[320,240]#固定点
         #初始化pid控制
@@ -62,9 +62,9 @@ class Com:
         self.lethand_rigear=None
         self.righand_letear=None
         self.rihan_neck=None
-        self.rihan_nose=None
+        self.hand_hand=None
         self.lehan_neck=None 
-        self.lehan_nose=None 
+        
 
         #定义模式时间用于切换判断
         self.flymodechange=time.time() 
@@ -147,9 +147,9 @@ class Com:
             self.neck=None
         #从listid[10]获取亮度
         if kp[10][0] and kp[10][1]:
-            self.brightness=kp[10][0]
+            self.press=kp[10][0]
         else:
-            self.brightness=None 
+            self.press=None 
 
         #计算肩宽和中心点和脖子的长度用于模拟远近
         if self.letfshd and self.rightshd:
@@ -183,18 +183,15 @@ class Com:
             self.rihan_neck=distance(self.righthand,self.neck)
         else:
             self.rihan_neck=None 
-        if self.righthand and self.nose:
-            self.rihan_nose=distance(self.righthand,self.nose)
-        else:
-            self.rihan_nose=None
         if self.letfhand and self.neck:
             self.lehan_neck=distance(self.letfhand,self.neck)
         else:
             self.lehan_neck=None
-        if self.letfhand and self.nose:
-            self.lehan_nose=distance(self.letfhand,self.nose)
+        if self.righthand and self.letfhand:
+            self.hand_hand=distance(self.righthand,self.letfhand)
         else:
-            self.lehan_nose=None
+            self.hand_hand=None
+        
 
 
         
@@ -238,27 +235,35 @@ class Com:
             if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]):
                 if self.righand_letear<30:#这个值还不知道，先这样设置
                     if self.flymode!=5:#将进入模式
-                        if time.time()-self.flymodechange=time.time()<2:#判断时间是否小于一秒，否则不执行
+                        if time.time()-self.flymodechange>2:#判断时间是大于2秒，否则不执行
                             self.flymodechange=time.time()
                             self.flymode=5
                     else:#退出模式
-                        if time.time()-self.flymodechange=time.time()<2:
+                        if time.time()-self.flymodechange<2:
                             self.flymodechange=time.time()
                             self.flymode=0
               #降落4
             elif (self.righthand[1]>self.rightshd[1]) and (self.letfhand[1]<self.letfshd[1]):
                 if self.lethand_rigear<30:#这个值还不知道，先这样设置
                     if self.flymode!=4:#将进入模式
-                        if time.time()-self.flymodechange=time.time()<2:#判断时间是否小于一秒，否则不执行
+                        if time.time()-self.flymodechange>2:#判断时间是否大于2秒，否则不执行
                             self.flymodechange=time.time()
                             self.flymode=4
                     else:#退出模式
-                        if time.time()-self.flymodechange=time.time()<2:
+                        if time.time()-self.flymodechange<2:
                             self.flymodechange=time.time()
                             self.flymode=0
             #双手的操作
                 #跟随模式1
-            elif :
+            elif (self.righthand[1]<self.nose[1]) and (self.letfhand[1]<self.nose[1]) and (self.hand_hand<20):#手合并举高高
+                if self.flymode!=1:
+                    if time.time()-self.flymodechange>2:
+                        self.flymodechange=time.time()
+                        self.flymode=1
+                else:
+                    if time()-self.flymodechange:
+                        self.flymodechange=time.time()
+                        self.flymode=0
                 #平行跟随2
             elif :
             else:
@@ -288,7 +293,16 @@ class Com:
 
         #m没有起飞时则判断起飞方式
         if self.isfly is None:
-            if :#抛飞#如果没有抛起来怎么办
+            if self.press==1:#抛飞#如果没有抛起来怎么办
+                if self.flymode==6:
+                    if time.time()-self.flymodechange>2:
+                        self.flymodechange=time.time()
+                        self.flymode=0
+                else:#退出抛飞
+                    if time.time()-self.flymodechange<2:
+                        sefl.flymodechange=time.time()  
+                        self.flymode=6
+
 
             if :#起飞#判断是否起飞成功？？？
         

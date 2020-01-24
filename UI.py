@@ -29,6 +29,7 @@ class FPS: #这个模块摘自tello_openpose
         
 class player():
     def __init__(self):
+        self.sound(0)
 
     def sound(self,mode):
         if mode == 0:
