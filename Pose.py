@@ -146,17 +146,19 @@ if __name__=='__main__':
         #else:
           #  print('ooooops')
         if show[2][0]:#值判断一个就好
-            cv2.circle(frame2, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[2][0], show[2][1]), 10, (0, 0, 255), -1)
         if show[3][0]:
-            cv2.circle(frame2, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[3][0], show[3][1]), 10, (0, 0, 255), -1)
         if show[4][0]:
-            cv2.circle(frame2, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[4][0], show[4][1]), 10, (0, 0, 255), -1)
         if show[5][0]:#值判断一个就好
-            cv2.circle(frame2, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[5][0], show[5][1]), 10, (0, 0, 255), -1)
         if show[6][0]:
-            cv2.circle(frame2, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
         if show[7][0]:
-            cv2.circle(frame2, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
+            cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
+        if show[1][0]:
+            cv2.circle(frame2, (show[1][0], show[1][1]), 35, (0, 0, 255), -1)
         
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
        # fps.display(frame2)

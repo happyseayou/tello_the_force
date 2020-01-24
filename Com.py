@@ -255,17 +255,25 @@ class Com:
                             self.flymode=0
             #双手的操作
                 #跟随模式1
-            elif (self.righthand[1]<self.nose[1]) and (self.letfhand[1]<self.nose[1]) and (self.hand_hand<20):#手合并举高高
+            elif (self.righthand[1]<self.nose[1]) and (self.letfhand[1]<self.nose[1]) and (self.hand_hand<35):#手合并举高高数字待测试
                 if self.flymode!=1:
                     if time.time()-self.flymodechange>2:
                         self.flymodechange=time.time()
                         self.flymode=1
                 else:
-                    if time()-self.flymodechange:
+                    if time()-self.flymodechange>2:
                         self.flymodechange=time.time()
                         self.flymode=0
                 #平行跟随2
-            elif :
+            elif(self.hand_hand<35) and (self.rihan_neck<35) and (self.lehan_neck<35):#手合并在胸前
+                if self.flymode!=2:
+                    if time.time()-self.flymodechange>2:
+                        self.flymodechange=time.time()
+                        self.flymode=2
+                else:
+                    if time()-self.flymodechange>2:
+                        self.flymodechange=time.time()
+                        self.flymode=0
             else:
                 self.flymode=0
 
@@ -312,156 +320,163 @@ class Com:
 
             
 
-    def get_comd(self,kp):
+    def get_comd(self,kp,userc):
         comd=[0,0,0,0,0]#每轮循环都回中
-        self.check_mode(kp)
-        xoff=self.neck[0]-self.point[0]#计算修正量
-        yoff=self.neck[1]-self.point[1]
-        
-        #flymode 0普通跟踪，只修正偏航
-        #        1跟随模式，修正偏航和锁定距离
-        #        2平行跟随，修正roll和锁定距离
-        #        3丢失目标，保持高度，同时旋转寻找目标，如果超过15秒则降落
-        #        4降落，所有参数清零
-        #        5靠近降落在手掌，所有参数清零
-        #        6抛飞，
-        #        7起飞，
-        #        8紧急停机，9拍照，10起飞失败，11起飞成功，12退出平行跟随，
-        #        13退出跟随模式，14接近中，15，低电量警报
-            #另外，左右手控制距离和偏转在除丢失模式下任何模式下都可用
-            #pose    0无操作
-            #        1向前
-            #        2向后
-            #        3向左飘
-            #        4向右
-        if self.flymode==0:#flymode 0普通跟踪，只修正偏航
-            self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-            self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-            comd[0]=int(self.pid_yaw(xoff))
-            comd[3]=int(self.pid_thro(yoff))
-            if self.isfly:
-                if self.pose==0:#这层判断用于控制前后左右
-                    pass
-                elif self.pose==1:
-                    comd[2]=self.posespeed
-                elif self.pose==2:
-                    comd[2]=-self.posespeed
-                elif self.pose==3:
-                    comd[1]=self.posespeed
-                elif self.pose==4:
-                    comd[1]=self.posespeed
-
-        elif self.flymode==1:#        1跟随模式，修正偏航和锁定距离
-            self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-            self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-            self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
-
-            if self.lock_distance_mn and self.lock_distance_sd is None:#判断是否存在这两个值，没有则重建
-                if self.distance_midneck:#优先使用中轴线
-                    self.lock_distance_mn=self.distance_midneck
-                elif: self.distance_shd:
-                    self.lock_distance_sd=self.distance_shd
-                
-            comd[0]=int(self.pid_yaw(xoff))
-            comd[3]=int(self.pid_thro(yoff))
-
-            if self.distance_midneck and self.lock_distance_mn:#判断是否存在这两个值，存在才能给命令，不存在则使用初始值
-                comd[2]=int(self.pid_pith(self.lock_distance_mn-self.distance_midneck))
-            elif self.distance_shd and self.lock_distance_sd:
-                comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
-
-            if self.isfly:
-                if self.pose==0:#这层判断用于控制前后左右
-                    pass
-                elif self.pose==1:
-                    if self.lock_distance_mn and self.lock_distance_sd:
-                        self.lock_distance_mn--
-                        self.lock_distance_sd--
-                elif self.pose==2:
-                    if self.lock_distance_mn and self.lock_distance_sd:
-                        self.lock_distance_mn++
-                        self.lock_distance_sd--
-                elif self.pose==3:
-                    comd[1]=self.posespeed
-                elif self.pose==4:
-                    comd[1]=-self.posespeed
-        
-        elif self.flymode==2:#        2平行跟随，修正roll和锁定距离
-            self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-            self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-            self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
-            self.pid_roll= PID(0.2,0.005,0.2,setpoint=0,output_limits=(-30,30))
-
-            if self.lock_distance_mn and self.lock_distance_sd is None:#只赋值一次
-                if self.distance_midneck:
-                    self.lock_distance_mn=self.distance_midneck
-                elif: self.distance_shd:
-                    self.lock_distance_sd=self.distance_shd
-                
-            #comd[0]=int(self.pid_yaw(xoff))
-            comd[3]=int(self.pid_thro(yoff))
-            comd[1]=int(self.pid_roll(xoff))
-
-            if self.distance_midneck and self.lock_distance_mn:
-                comd[2]=int(self.pid_pith(self.lock_distance_mn-self.distance_midneck))
-            elif self.distance_shd and self.lock_distance_sd:
-                comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
-
-            if self.isfly:
-                if self.pose==0:#这层判断用于控制前后左右
-                    pass
-                elif self.pose==1:
-                    if self.lock_distance_mn and self.lock_distance_sd:
-                        self.lock_distance_mn--
-                        self.lock_distance_sd--
-                elif self.pose==2:
-                    if self.lock_distance_mn and self.lock_distance_sd:
-                        self.lock_distance_mn++
-                        self.lock_distance_sd--
-                elif self.pose==3:
-                    self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-                    comd[0]=int(self.pid_yaw(xoff))
-                    comd[1]=self.posespeed
-                elif self.pose==4:
-                    self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-                    comd[0]=int(self.pid_yaw(xoff))
-                    comd[1]=-self.posespeed
+        if userc[0]==1:
+            self.check_mode(kp)
+            xoff=self.neck[0]-self.point[0]#计算修正量
+            yoff=self.neck[1]-self.point[1]
             
-        elif self.flymode==3: #        3丢失目标，保持高度，同时旋转寻找目标，如果超过15秒则降落
-            comd[0]=self.posespeed
+            #flymode 0普通跟踪，只修正偏航
+            #        1跟随模式，修正偏航和锁定距离
+            #        2平行跟随，修正roll和锁定距离
+            #        3丢失目标，保持高度，同时旋转寻找目标，如果超过15秒则降落
+            #        4降落，所有参数清零
+            #        5靠近降落在手掌，所有参数清零
+            #        6抛飞，
+            #        7起飞，
+            #        8紧急停机，9拍照，10起飞失败，11起飞成功，12退出平行跟随，
+            #        13退出跟随模式，14接近中，15，低电量警报
+                #另外，左右手控制距离和偏转在除丢失模式下任何模式下都可用
+                #pose    0无操作
+                #        1向前
+                #        2向后
+                #        3向左飘
+                #        4向右
+            if self.flymode==0:#flymode 0普通跟踪，只修正偏航
+                self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
+                comd[0]=int(self.pid_yaw(xoff))
+                comd[3]=int(self.pid_thro(yoff))
+                if self.isfly:
+                    if self.pose==0:#这层判断用于控制前后左右
+                        pass
+                    elif self.pose==1:
+                        comd[2]=self.posespeed
+                    elif self.pose==2:
+                        comd[2]=-self.posespeed
+                    elif self.pose==3:
+                        comd[1]=self.posespeed
+                    elif self.pose==4:
+                        comd[1]=self.posespeed
 
-        elif self.flymode==4: #        4降落，所有参数清零
-            comd[4]=4
-            self.reset()
+            elif self.flymode==1:#        1跟随模式，修正偏航和锁定距离
+                self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
+                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
+
+                if self.lock_distance_mn and self.lock_distance_sd is None:#判断是否存在这两个值，没有则重建
+                    if self.distance_midneck:#优先使用中轴线
+                        self.lock_distance_mn=self.distance_midneck
+                    elif: self.distance_shd:
+                        self.lock_distance_sd=self.distance_shd
+                    
+                comd[0]=int(self.pid_yaw(xoff))
+                comd[3]=int(self.pid_thro(yoff))
+
+                if self.distance_midneck and self.lock_distance_mn:#判断是否存在这两个值，存在才能给命令，不存在则使用初始值
+                    comd[2]=int(self.pid_pith(self.lock_distance_mn-self.distance_midneck))
+                elif self.distance_shd and self.lock_distance_sd:
+                    comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
+
+                if self.isfly:
+                    if self.pose==0:#这层判断用于控制前后左右
+                        pass
+                    elif self.pose==1:
+                        if self.lock_distance_mn and self.lock_distance_sd:
+                            self.lock_distance_mn--
+                            self.lock_distance_sd--
+                    elif self.pose==2:
+                        if self.lock_distance_mn and self.lock_distance_sd:
+                            self.lock_distance_mn++
+                            self.lock_distance_sd--
+                    elif self.pose==3:
+                        comd[1]=self.posespeed
+                    elif self.pose==4:
+                        comd[1]=-self.posespeed
             
-        
-        elif self.flymode==5: #        5靠近降落在手掌，所有参数清零
-            self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
-            self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-            self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
-            self.lock_distance_sd=246     #最近肩宽   
-            comd[0]=int(self.pid_yaw(xoff))
-            comd[3]=int(self.pid_thro(yoff))
-            if self.distance_shd:
-                comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
-            if int(self.distance_shd-self.lock_distance_sd)<10:
-                comd[4]=3
+            elif self.flymode==2:#        2平行跟随，修正roll和锁定距离
+                self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
+                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
+                self.pid_roll= PID(0.2,0.005,0.2,setpoint=0,output_limits=(-30,30))
+
+                if self.lock_distance_mn and self.lock_distance_sd is None:#只赋值一次
+                    if self.distance_midneck:
+                        self.lock_distance_mn=self.distance_midneck
+                    elif: self.distance_shd:
+                        self.lock_distance_sd=self.distance_shd
+                    
+                #comd[0]=int(self.pid_yaw(xoff))
+                comd[3]=int(self.pid_thro(yoff))
+                comd[1]=int(self.pid_roll(xoff))
+
+                if self.distance_midneck and self.lock_distance_mn:
+                    comd[2]=int(self.pid_pith(self.lock_distance_mn-self.distance_midneck))
+                elif self.distance_shd and self.lock_distance_sd:
+                    comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
+
+                if self.isfly:
+                    if self.pose==0:#这层判断用于控制前后左右
+                        pass
+                    elif self.pose==1:
+                        if self.lock_distance_mn and self.lock_distance_sd:
+                            self.lock_distance_mn--
+                            self.lock_distance_sd--
+                    elif self.pose==2:
+                        if self.lock_distance_mn and self.lock_distance_sd:
+                            self.lock_distance_mn++
+                            self.lock_distance_sd--
+                    elif self.pose==3:
+                        self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                        comd[0]=int(self.pid_yaw(xoff))
+                        comd[1]=self.posespeed
+                    elif self.pose==4:
+                        self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                        comd[0]=int(self.pid_yaw(xoff))
+                        comd[1]=-self.posespeed
+                
+            elif self.flymode==3: #        3丢失目标，保持高度，同时旋转寻找目标，如果超过15秒则降落
+                comd[0]=self.posespeed
+
+            elif self.flymode==4: #        4降落，所有参数清零
+                comd[4]=4
                 self.reset()
-               
-        
-        elif self.flymode==6:#        6抛飞
-            comd[4]=2
-           # self.is_fly=1   #判断是否起飞成功？？？
-            self.flymode=0
+                
+            
+            elif self.flymode==5: #        5靠近降落在手掌，所有参数清零
+                self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
+                self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
+                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
+                self.lock_distance_sd=246     #最近肩宽   
+                comd[0]=int(self.pid_yaw(xoff))
+                comd[3]=int(self.pid_thro(yoff))
+                if self.distance_shd:
+                    comd[2]=int(self.pid_pith(self.lock_distance_sd-self.distance_shd))
+                if int(self.distance_shd-self.lock_distance_sd)<10:
+                    comd[4]=3
+                    self.reset()
+                
+            
+            elif self.flymode==6:#        6抛飞
+                comd[4]=2
+            # self.is_fly=1   #判断是否起飞成功？？？
+                self.flymode=0
 
-        elif self.flymode==7:#        7起飞，
-            comd[4]=1
-            #self.is_fly=1
-            self.flymode=0
-        
-        elif self.flymode==8:#        8紧急停机，
-            comd[3]=-100        #暂时没有找到通信协议紧急停机的代码
-            self.reset()
+            elif self.flymode==7:#        7起飞，
+                comd[4]=1
+                #self.is_fly=1
+                self.flymode=0
+            
+            elif self.flymode==8:#        8紧急停机，
+                comd[3]=-100        #暂时没有找到通信协议紧急停机的代码
+                self.reset()
+        else:#不使用pose
+            self.reset()#清空
+            #拷贝命令，命令来自ui.py的class Usercomd
+
+
+
         self.comd = comd   
         return comd
         #comd[0] comd[1] comd[2]  comd[3]  comd[4]
@@ -473,7 +488,8 @@ class Com:
         self.state[0]=self.isfly
         self.state[1]=self.batry
         self.state[2]=self.flymode
-        self.state[3]=self.pose
+        if self.pose:
+            self.state[3]=self.pose
         self.state[4]=self.comd[3]
         self.state[5]=self.comd[2]
         self.state[6]=self.comd[1]

@@ -73,7 +73,7 @@ class Tello:
         self.throw_fly_timer=data.throw_fly_timer
         #这个一个接受数据的函数
 
-    def send_data(self):#用于发送数据给ui
+    def send_data(self):#用于发送数据给com
         bat=self.battery
         is_fly=self.is_fly
         tftimer=self.throw_fly_timer

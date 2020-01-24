@@ -2,6 +2,7 @@
 import cv2
 import time
 import winsound
+import pygame
 
 class FPS: #这个模块摘自tello_openpose
     def __init__(self):
@@ -25,11 +26,38 @@ class FPS: #这个模块摘自tello_openpose
     def display(self, win, orig=(10,30), font=cv2.FONT_HERSHEY_PLAIN, size=2, color=(0,255,0), thickness=2):
         cv2.putText(win,f"FPS={self.get():.2f}",orig,font,size,color,thickness)
 
+class Usercomd():#用户控制ui
+
+    def __init__(self):
+        self.pyg=pygame.init()
+        self.screen = pygame.display.set_mode((640,480),0,32)
+
+    def keyborad_read(self):
+        key_list=self.pyg.key.get_pressed()
+        kb=[0,0,0,0,0]#回中
+        if key_list[self.pygame.K_UP]:
+            kb[0]=50
+        
+        
+
+
+        return kb
+        #[0  1  2  3   4         5]
+        #四个通道      ispose    模式
+
+    def usec(self):
+        kbs=self.keyborad_read
+
+
+        return us
+    #userc[0                1 2 3 4   5         ]
+      #是否使用openpose    四个通道  模式
 
         
 class player():
+
     def __init__(self):
-        self.sound(0)
+        pass
 
     def sound(self,mode):
         if mode == 0:
@@ -75,11 +103,14 @@ class UID():#显示类
         self.fps=FPS()
 
     def show(self,image,kp,flightstate):
-
-        self.drawer(image,kp)
-        image=self.hubw(image,flightdata)
-        image=cv2.resize(image,(960,720))
-        cv2.imshow('tello',image)
+        if kp==0:#两种显示模式
+            image=self.hubw(image,flightdata)
+            cv2.imshow('telloraw',image)
+        else:
+            self.drawer(image,kp)
+            image=self.hubw(image,flightdata)
+            image=cv2.resize(image,(960,720))
+            cv2.imshow('tello',image)
 
 
     def drawer(self,image,kp):
