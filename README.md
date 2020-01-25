@@ -5,7 +5,7 @@
 这个东东是基于 https://github.com/geaxgx/tello-openpose 开发的，重新设计了调用逻辑，使用了他的class FPS和class HUB（目前的进度），拆分出更多模块，后续可以更方便的开发出新模块（只需要修改com.py）
 
 # 需要的库
-参考tellostate.yaml   //conda 环境配置
+参考tellostate.yaml      //conda 环境配置
 基于python3
 opencv-python
 pyAV    用于解码（后续考虑使用带gpu加速的）安装有坑需要ffmpeg，然后用conda安装
