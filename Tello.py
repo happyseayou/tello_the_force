@@ -63,6 +63,23 @@ class Tello:
                 self.drone.palm_land()
             elif comd[4]==4:
                 self.drone.land()
+            #八向翻滚
+            elif comd[4]==5:
+                self.drone.flip_forward()
+            elif comd[4]==6:
+                self.drone.flip_back()
+            elif comd[4]==7:
+                self.drone.flip_left()
+            elif comd[4]==8:
+                self.drone.flip_right()
+            elif comd[4]==9:
+                self.drone.flip_forwardleft()
+            elif comd[4]==10:
+                self.drone.flip_forwardright()
+            elif comd[4]==11:
+                self.drone.flip_backleft()
+            elif comd[4]==12:
+                self.drone.flip_backright()
 
     #comd[0] comd[1] comd[2]  comd[3]  comd[4]
     #旋转     左右    前后      上下     特殊命令

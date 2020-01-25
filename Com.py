@@ -312,9 +312,7 @@ class Com:
                         self.flymode=6
 
 
-            if :#起飞#判断是否起飞成功？？？
-        
-        if：#紧急停机通过键盘键位，最后一个修改，等级最高
+           
            
 
 
@@ -322,7 +320,7 @@ class Com:
 
     def get_comd(self,kp,userc):
         comd=[0,0,0,0,0]#每轮循环都回中
-        if userc[0]==1:
+        if userc[4]==1:
             self.check_mode(kp)
             xoff=self.neck[0]-self.point[0]#计算修正量
             yoff=self.neck[1]-self.point[1]
@@ -463,18 +461,18 @@ class Com:
             # self.is_fly=1   #判断是否起飞成功？？？
                 self.flymode=0
 
-            elif self.flymode==7:#        7起飞，
-                comd[4]=1
-                #self.is_fly=1
-                self.flymode=0
             
-            elif self.flymode==8:#        8紧急停机，
-                comd[3]=-100        #暂时没有找到通信协议紧急停机的代码
-                self.reset()
         else:#不使用pose
             self.reset()#清空
             #拷贝命令，命令来自ui.py的class Usercomd
-
+            comd[0]=userc[3]
+            comd[1]=userc[2]
+            comd[2]=userc[1]
+            comd[3]=userc[0]
+            #特殊命令
+            comd[4]=userc[5]
+            self.flymode=userc[5]+7#接受特殊指令为飞行模式，仅在键盘模式下使用
+                                 #从9开始，避开前面的模式
 
 
         self.comd = comd   

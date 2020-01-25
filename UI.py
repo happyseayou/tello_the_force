@@ -26,90 +26,96 @@ class FPS: #这个模块摘自tello_openpose
     def display(self, win, orig=(10,30), font=cv2.FONT_HERSHEY_PLAIN, size=2, color=(0,255,0), thickness=2):
         cv2.putText(win,f"FPS={self.get():.2f}",orig,font,size,color,thickness)
 
-class Usercomd():#用户控制ui
 
-    def __init__(self):
-        self.pyg=pygame.init()
-        self.screen = pygame.display.set_mode((640,480),0,32)
-
-    def keyborad_read(self):
-        key_list=self.pyg.key.get_pressed()
-        kb=[0,0,0,0,0]#回中
-        if key_list[self.pygame.K_UP]:
-            kb[0]=50
-        
-        
-
-
-        return kb
-        #[0  1  2  3   4         5]
-        #四个通道      ispose    模式
-
-    def usec(self):
-        kbs=self.keyborad_read
-
-
-        return us
-    #userc[0                1 2 3 4   5         ]
-      #是否使用openpose    四个通道  模式
-
-        
 class player():
-
     def __init__(self):
-        pass
+        #pose下
+        self.sound_mode_0 = pygame.mixer.Sound("playsounds\\普通锁定.wav")
+        self.sound_mode_1 = pygame.mixer.Sound("playsounds\\跟随模式.wav")
+        self.sound_mode_2 = pygame.mixer.Sound("playsounds\\平行跟随.wav")
+        self.sound_mode_3 = pygame.mixer.Sound("playsounds\\目标丢失.wav")
+        self.sound_mode_4 = pygame.mixer.Sound("playsounds\\降落.wav")
+        self.sound_mode_5 = pygame.mixer.Sound("playsounds\\手掌降落.wav")
+        self.sound_mode_6 = pygame.mixer.Sound("playsounds\\抛出即可飞行.wav")
+        #self.sound_mode_7 = pygame.mixer.Sound("playsounds\\起飞.wav")
+        #键盘操作下
+        self.key_mode_7=self.sound_mode_7#起飞
+        self.key_mode_8=self.sound_mode_6#抛飞
+        self.key_mode_9=self.sound_mode_4
+        self.key_mode_10=self.sound_mode_5
+        #键盘下，翻滚动作
+        self.key_mode_11=pygame.mixer.Sound("playsounds\\前空翻.wav")
+        self.key_mode_12=pygame.mixer.Sound("playsounds\\后空翻.wav")
+        self.key_mode_13=pygame.mixer.Sound("playsounds\\左空翻.wav")
+        self.key_mode_14=pygame.mixer.Sound("playsounds\\右空翻.wav")
+        self.key_mode_15=pygame.mixer.Sound("playsounds\\左前空翻.wav")
+        self.key_mode_16=pygame.mixer.Sound("playsounds\\右前空翻.wav")
+        self.key_mode_17=pygame.mixer.Sound("playsounds\\左后空翻.wav")
+        self.key_mode_18=pygame.mixer.Sound("playsounds\\右后空翻.wav")
+        
+
+
+
 
     def sound(self,mode):
         if mode == 0:
-            winsound.PlaySound('playsounds\\普通锁定.wav',winsound.SND_ALIAS)
+            self.sound_mode_0.play()
         elif mode == 1:
-            winsound.PlaySound('playsounds\\跟随模式.wav',winsound.SND_ALIAS)
+            self.sound_mode_1.play()
         elif mode == 2:
-            winsound.PlaySound('playsounds\\平行跟随.wav',winsound.SND_ALIAS)
+            self.sound_mode_2.play()
         elif mode == 3:
-            winsound.PlaySound('playsounds\\目标丢失.wav',winsound.SND_ALIAS)
+            self.sound_mode_3.play()
         elif mode == 4:
-            winsound.PlaySound('playsounds\\降落.wav',winsound.SND_ALIAS)
+            self.sound_mode_4.play()
         elif mode == 5:
-            winsound.PlaySound('playsounds\\即将降落.wav',winsound.SND_ALIAS)
+            self.sound_mode_5.play()
         elif mode == 6:
-            winsound.PlaySound('playsounds\\抛出即可飞行.wav',winsound.SND_ALIAS)
+            self.sound_mode_6.play()
+        #key mode
         elif mode == 7:
-            winsound.PlaySound('playsounds\\起飞.wav',winsound.SND_ALIAS)
+            self.key_mode_7.play()
         elif mode == 8:
-            winsound.PlaySound('playsounds\\紧急停机.wav',winsound.SND_ALIAS)
+            self.key_mode_8.play()
         elif mode == 9:
-            winsound.PlaySound('playsounds\\拍照.wav',winsound.SND_ALIAS)
+            self.key_mode_9.play()
         elif mode == 10:
-            winsound.PlaySound('playsounds\\起飞失败.wav',winsound.SND_ALIAS)
+            self.key_mode_10.play()
         elif mode == 11:
-            winsound.PlaySound('playsounds\\起飞成功.wav',winsound.SND_ALIAS)
+            self.key_mode_11.play()
         elif mode == 12:
-            winsound.PlaySound('playsounds\\退出平行跟随.wav',winsound.SND_ALIAS)
+            self.key_mode_12.play()
         elif mode == 13:
-            winsound.PlaySound('playsounds\\退出跟随模式.wav',winsound.SND_ALIAS)
+            self.key_mode_13.play()
         elif mode == 14:
-            winsound.PlaySound('playsounds\\接近中.wav',winsound.SND_ALIAS)
+            self.key_mode_14.play()
         elif mode == 15:
-            winsound.PlaySound('playsounds\\低电量警报.wav',winsound.SND_ALIAS)  
-            
-
-
-
+            self.key_mode_15.play()
+        elif mode == 16:
+            self.key_mode_16.play()
+        elif mode == 17:
+            self.key_mode_17.play()
+        elif mode == 18:
+            self.key_mode_18.play()
+        
 
 class UID():#显示类
 
     def __init__(self):
-        self.fps=FPS()
+        #self.fps=FPS()
+        self.player=player()
+        #self.hubw=hubw()
 
     def show(self,image,kp,flightstate):
         if kp==0:#两种显示模式
             image=self.hubw(image,flightdata)
+            self.player.sound(flightstate[2])
             cv2.imshow('telloraw',image)
         else:
             self.drawer(image,kp)
             image=self.hubw(image,flightdata)
             image=cv2.resize(image,(960,720))
+            self.player.sound(flightstate[2])
             cv2.imshow('tello',image)
 
 
@@ -165,9 +171,6 @@ class UID():#显示类
         #        4降落，所有参数清零
         #        5靠近降落在手掌，所有参数清零
         #        6抛飞，
-        #        7起飞，
-        #        8紧急停机，9拍照，10起飞失败，11起飞成功，12退出平行跟随，
-        #        13退出跟随模式，14接近中，15，低电量警报
         if flightdata[2]==0:
             hud.add(f"普通跟踪")
         elif flightdata[2]==1:
@@ -185,23 +188,51 @@ class UID():#显示类
         elif flightdata[2]==7:
             hud.add(f"起飞")
         elif flightdata[2]==8:
-            hud.add(f"紧急停机")
+            hud.add(f"抛飞")
+        elif flightdata[2]==9:
+            hud.add(f"手掌降落")
+        elif flightdata[2]==10:
+            hud.add(f"降落")
+        elif flightdata[2]==11:
+            hud.add(f"前翻滚")
+        elif flightdata[2]==12:
+            hud.add(f"后翻滚")
+        elif flightdata[2]==13:
+            hud.add(f"左翻滚")
+        elif flightdata[2]==14:
+            hud.add(f"右翻滚")
+        elif flightdata[2]==15:
+            hud.add(f"前左翻滚")
+        elif flightdata[2]==16:
+            hud.add(f"前右翻滚")
+        elif flightdata[2]==17:
+            hud.add(f"后左翻滚")
+        elif flightdata[2]==18:
+            hud.add(f"后右翻滚")
+        
+        
         #pose    0无操作
             #        1向前
             #        2向后
             #        3向左飘
             #        4向右
-        if:
-            hud.add(f"pose {flightstate[3]}")
-
+        if flightdata[3]==0:
+            hud.add(f"pose :normal")
+        elif flightdata[3]==1:
+            hud.add(f"pose :forward")
+        elif flightdata[3]==2:
+            hud.add(f"pose :backward")
+        elif flightdata[3]==3:
+            hud.add(f"pose :left roll")
+        elif flightdata[3]==4:
+            hud.add(f"pose :right roll")
+        else:
+            hud.add(f"data error!")
         hud.add(f"thr {flightstate[4]}")
         hud.add(f"pith {flightstate[5]}")
         hud.add(f"roll {flightstate[6]}")
         hud.add(f"yaw {flightstate[7]}")
         hud.add(f"lockd {flightstate[8]}")
         hud.add(f"dist {flightstate[9]}")
-       
-        
-
         hud.draw(image)
         return image

@@ -1,11 +1,27 @@
-#main函数，主循环代码放这里
+import sys
+import av
+import tellopy   
+import cv2
+import numpy
+import time
 import pygame
-from Pose import*
+import time
 from Tello import Tello
-#未完成整理待续
+from Com import Com
 
-def usec(key_list):#定义键盘跟踪，暂时没有封转到类
+
+
+    
+        #[0  1  2  3   4         5]
+           #四个通道   ispose    模式
+        #油 pitch roll yaw ispose   模式 0   1   2     3         4       5      
+      #shift w     e    a    t          无  起飞 降落  抛飞  手掌降落  停机
+       #ctrl  s    q    d    t              up down   0         0   spece
+
+def usec(key_list):
     speed=50
+    
+    
     us=[0,0,0,0,0,0]
     if key_list[pygame.K_w]:#W 前进
         us[1]=speed
@@ -48,11 +64,6 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
     elif key_list[pygame.K_SPACE]:#space紧急停机
         pass
         #四个通道刷为0
-         #[0  1  2  3   4         5]
-           #四个通道   ispose    模式
-        #油 pitch roll yaw ispose   模式 0   1   2     3         4             
-      #shift w     e    a    t          无  起飞 抛飞  降落  手掌降落  
-       #ctrl  s    q    d    t              up down   0         0   
     
     #八向翻滚：5  6 7 8  9 10  11 12 
     #对应键位  8  2 4 6  7  9  1  3
@@ -85,15 +96,13 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
 
 def main():
     pygame.init()
-    pygame.mixer.init()
-    screen = pygame.display.set_mode((20, 20), 0, 32)#键盘控制封不了类，只能用函数
-
-    tello=Tello()
-    pose=Pose()
-    com=Com()
-    ui=UID()
+    screen = pygame.display.set_mode((20, 20), 0, 32)
+    
     
 
+    tello=Tello()
+    com=Com()
+    
     frame_skip=300
     for frame in tello.container.decode(video=0):#一定要用这个循环来获取才不会产生delay
         if 0 < frame_skip:
@@ -102,26 +111,11 @@ def main():
         start_time = time.time()
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         key_list = pygame.key.get_pressed()
-        imageraw=image
-        image = cv2.resize(image,(640,480))#这个太大会爆显存
-        userc=usec(key_list)#来自用户输入的命令
-        #userc[0                1 2 3 4   5         ]
-            #是否使用openpose    四个通道  模式
-        if userc[4]==1:#判断使用跟踪
-            kp=pose.get_kp(image)
-        else:#不使用
-            kp=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-        comd=com.get_comd(kp,userc)#接受两个数组进行判断
+        userc=usec(key_list)
+        comd=com.get_comd(userc)
         tello.send_comd(comd)
-        flight=tello.send_data()#飞行数据
-        com.read_tello_data(flight)#飞控获取数据用于判断指令
-        flightstate=com.get_state()#命令状态
         pygame.display.update()
-        if userc[4]==1:#使用
-            ui.show(image,kp,flightstate)#显示并负责播放声音
-        else:#不用
-            ui.show(imageraw,0,flightstate)
-        
+        cv2.imshow('t',image)
         if frame.time_base < 1.0/60:
             time_base = 1.0/60
         else:
@@ -132,8 +126,7 @@ def main():
             pygame.display.quit()
             break
     cv2.destroyAllWindows()
+    
 
 if __name__=='__main__':
     main()
-
-        
