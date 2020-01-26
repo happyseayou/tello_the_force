@@ -130,7 +130,7 @@ class UID():#显示类
                 cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
         #画线
         color=(0,255,0)
-        thickness = 1
+        thickness = 3
         lineType = 8
         linep=[[0,1],[0,18],[0,17],[1,2],[1,8],[1,5],[2,3],[3,4],[5,6],[6,7]]
         for i in range(len(linep)):
@@ -141,10 +141,19 @@ class UID():#显示类
             if x1 and x2 and y1 and y2:
                 cv2.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
         #这里有点绕，就是标记出线段的id然后遍历所有io带入对应的(x1,y1)(x2,y2)
-    
+        #以下是跟踪箭头部分
+        x11=320#起点
+        y11=240
+        x22=kp[0][0]#终点kp
+        y22=kp[0][1]
+        if x11 and x22 and y11 and y22:
+            cv2.arrowedLine(image, (x11,y11), (x22,y22), (0,0,255),5,8,0,0.3)
+            cv2.circle(image, (x11,y11), 3, (0, 255, 255), -1)
+            cv2.circle(image, (x22,y22), 4, (255, 0, 255), -1)
+
     def hubw(self,image,flightstate):
         #这里摘自tello_openpose
-        class HUD:
+        class HUD: 
             def __init__(self, def_color=(255, 170, 0)):
                 self.def_color = def_color
                 self.infos = []
@@ -192,29 +201,29 @@ class UID():#显示类
             hud.add("palm land", (0,255,0))
         elif flightstate[2]==6:
             hud.add("throw and go", (0,255,0))
-        elif flightstate[2]==7:
-            hud.add("takeoff", (0,255,0))
         elif flightstate[2]==8:
-            hud.add("抛飞", (0,255,0))
+            hud.add("takeoff", (0,255,0))
         elif flightstate[2]==9:
             hud.add("throw and go", (0,255,0))
         elif flightstate[2]==10:
-            hud.add("land", (0,255,0))
+            hud.add("palm land", (0,255,0))
         elif flightstate[2]==11:
-            hud.add("flip forward", (0,255,0))
+            hud.add("land", (0,255,0))
         elif flightstate[2]==12:
-            hud.add("flip back", (0,255,0))
+            hud.add("flip forward", (0,255,0))
         elif flightstate[2]==13:
-            hud.add("flip left", (0,255,0))
+            hud.add("flip back", (0,255,0))
         elif flightstate[2]==14:
-            hud.add("flip right", (0,255,0))
+            hud.add("flip left", (0,255,0))
         elif flightstate[2]==15:
-            hud.add("flip forward left", (0,255,0))
+            hud.add("flip right", (0,255,0))
         elif flightstate[2]==16:
-            hud.add("flip forward right", (0,255,0))
+            hud.add("flip forward left", (0,255,0))
         elif flightstate[2]==17:
-            hud.add("flip back left", (0,255,0))
+            hud.add("flip forward right", (0,255,0))
         elif flightstate[2]==18:
+            hud.add("flip back left", (0,255,0))
+        elif flightstate[2]==19:
             hud.add("flip back right", (0,255,0))
         
         
@@ -228,7 +237,7 @@ class UID():#显示类
         elif flightstate[3]==1:
             hud.add("pose :forward", (0,255,0))
         elif flightstate[3]==2:
-            hud.add("pose :backward", (0,255,0))
+            hud.add("pose :backward", (0,0,255))
         elif flightstate[3]==3:
             hud.add("pose :left roll", (0,255,0))
         elif flightstate[3]==4:
@@ -241,5 +250,8 @@ class UID():#显示类
         hud.add(f"yaw {flightstate[7]}")
         hud.add(f"lockd {flightstate[8]}")
         hud.add(f"dist {flightstate[9]}")
+        hud.add(f"throw and go timer {flightstate[10]}")
+        hud.add(f"height {flightstate[11]}")
+        hud.add(f"wifi {flightstate[12]}")
         hud.draw(image)
         return image

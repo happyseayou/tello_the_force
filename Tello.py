@@ -18,6 +18,8 @@ class Tello:
         #初始参数
         self.battery=None
         self.is_fly=None
+        self.height=None
+        self.wifi=None
         self.throw_fly_timer=None
 
         #开始连接飞机
@@ -88,13 +90,18 @@ class Tello:
         self.battery=data.battery_percentage
         self.is_fly=data.em_sky
         self.throw_fly_timer=data.throw_fly_timer
+        #self.height=data.height
+        self.height=data.height
+        self.wifi=data.wifi_strength
         #这个一个接受数据的函数
 
     def send_data(self):#用于发送数据给com
         bat=self.battery
         is_fly=self.is_fly
         tftimer=self.throw_fly_timer
-        return bat,is_fly,tftimer
+        height=self.height
+        wifi=self.wifi
+        return bat,is_fly,tftimer,height,wifi
     
   
 

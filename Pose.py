@@ -107,7 +107,7 @@ class Pose:
         per_image=[]
         per_image.append(np.mean(frame[0]))
         brightness=np.mean(per_image)
-        if brightness<50:
+        if brightness<70:
             press=1
         else:
             press=0

@@ -13,7 +13,7 @@ def angle(A,B,C):
         return None
     dg=degrees(atan2(C[1]-B[1],C[0]-B[0]) - atan2(A[1]-B[1],A[0]-B[0]))%360
     if dg>=180 and dg<360:
-        dg=360-dg  #返回角度0-90
+        dg=360-dg
     return dg
 
 
@@ -25,7 +25,9 @@ class Com:
         self.isfly=None
         self.batry=None
         self.throwflytimer=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0]
+        self.height=None
+        self.wifi=None
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.comd=None 
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
@@ -170,7 +172,7 @@ class Com:
         else:
             self.angleright=None
         if self.letfhand and self.lerfhandmid and self.letfshd:
-            self.anglerletf=angle(self.letfshd,self.lerfhandmid,self.letfshd)
+            self.anglerletf=angle(self.letfhand,self.lerfhandmid,self.letfshd)
         else:
             self.anglerletf=None
         
@@ -216,22 +218,28 @@ class Com:
         #        6抛飞，
         #        7起飞，
         #        8紧急停机，
-        if self.nose and self.letfear and self.rightear and self.neck and self.letfshd and self.rightshd and self.letfhand and self.lerfhandmid and self.righthand and self.righthandmid:
+        self.pose=0#先归零
+        if self.letfshd and self.neck and self.rightshd and self.letfhand and self.lerfhandmid and self.righthand and self.righthandmid:
             #第0层判断是否满足判断条件，如果没有同时存在这些点则不做任何指令切换或动作
             #判断pose左右手操作互斥
-            if self.isfly:
-                if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]<self.neck[0]): #右手举起了决定左右飘
-                    if self.angleright<=90:
-                        self.pose=4
-                    else:
-                        self.pose=3
-                elif (self.letfhand[1]<self.letfshd[1]) and (self.righthand[1]>self.rightshd[1])and (self.lerfhand[0]>self.neck[0]):#左手举起了决定前后
-                    if self.anglerletf<=90:
-                        self.pose=1
-                    else:
-                        self.pose=2
-                else:
-                    self.pose=0
+            #if self.isfly:感觉不需要了
+            if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]<self.neck[0]): #右手举起了决定左右飘
+                if self.angleright<=90:
+                    self.pose=4
+                elif self.angleright>90:
+                    self.pose=3
+            elif (self.letfhand[1]<self.letfshd[1]) and (self.righthand[1]>self.rightshd[1])and (self.letfhand[0]>self.neck[0]):#左手举起了决定前后
+                if self.anglerletf<=90:
+                    self.pose=1
+                elif self.anglerletf>90:
+                    self.pose=2
+            else:
+                self.pose=0
+        else:
+            self.pose=0
+
+        if self.nose and self.letfear and self.rightear and self.neck and self.letfshd and self.rightshd and self.letfhand and self.lerfhandmid and self.righthand and self.righthandmid:
+            #第0层判断是否满足判断条件，如果没有同时存在这些点则不做任何指令切换或动作
             #判断fly_mode
             #首先是单手
                #手掌降落模式5
@@ -264,7 +272,7 @@ class Com:
                         self.flymodechange=time.time()
                         self.flymode=1
                 else:
-                    if time()-self.flymodechange>2:
+                    if time.time()-self.flymodechange>2:
                         self.flymodechange=time.time()
                         self.flymode=0
                 #平行跟随2
@@ -280,10 +288,8 @@ class Com:
             else:
                 self.flymode=0
 
-        
-
         else:
-            self.pose=0
+            #self.pose=0
             self.flymode=0
         
         
@@ -303,16 +309,18 @@ class Com:
             self.flymode=3
 
         #m没有起飞时则判断起飞方式
-        if self.isfly is None:
+       # print(self.press)
+        if self.isfly!=1:
             if self.press==1:#抛飞#如果没有抛起来怎么办
-                if self.flymode==6:
+                if self.flymode!=6:
                     if time.time()-self.flymodechange>2:
                         self.flymodechange=time.time()
-                        self.flymode=0
-                else:#退出抛飞
-                    if time.time()-self.flymodechange<2:
-                        sefl.flymodechange=time.time()  
                         self.flymode=6
+                else:#退出抛飞
+                    if time.time()-self.flymodechange>2:
+                        sefl.flymodechange=time.time()  
+                        self.flymode=0
+        print(self.flymode)
 
 
            
@@ -351,7 +359,7 @@ class Com:
             if self.flymode==0:#flymode 0普通跟踪，只修正偏航
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                comd[0]=int(self.pid_yaw(xoff))
+                comd[0]=int(-self.pid_yaw(xoff))
                 comd[3]=int(self.pid_thro(yoff))
                 if self.isfly:
                     if self.pose==0:#这层判断用于控制前后左右
@@ -466,7 +474,8 @@ class Com:
             elif self.flymode==6:#        6抛飞
                 comd[4]=2
             # self.is_fly=1   #判断是否起飞成功？？？
-                self.flymode=0
+                if self.isfly:
+                    self.flymode=0
 
             
         else:#不使用pose
@@ -493,7 +502,7 @@ class Com:
         self.state[0]=self.isfly
         self.state[1]=self.batry
         self.state[2]=self.flymode
-        if self.pose:
+        if self.pose is not None:
             self.state[3]=self.pose
         self.state[4]=self.comd[3]
         self.state[5]=self.comd[2]
@@ -508,6 +517,9 @@ class Com:
         else:
             self.state[8]='***'
             self.state[9]='***'
+        self.state[10]=self.throwflytimer
+        self.state[11]=self.height
+        self.state[12]=self.wifi
         state=self.state
         return state
 
@@ -515,4 +527,6 @@ class Com:
         self.isfly=data[1]
         self.batry=data[0]
         self.throwflytimer=data[2]
+        self.height=data[3]
+        self.wifi=data[4]
 
