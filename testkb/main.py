@@ -27,13 +27,13 @@ def usec(key_list):
         us[1]=speed
     if key_list[pygame.K_s]:#s后退
         us[1]=-speed
-    if key_list[pygame.K_q]:#q
+    if key_list[pygame.K_a]:#q
         us[2]=-speed
-    if key_list[pygame.K_e]:#e
+    if key_list[pygame.K_d]:#e
         us[2]=speed
-    if key_list[pygame.K_a]:#a
+    if key_list[pygame.K_q]:#a
         us[3]=-speed
-    if key_list[pygame.K_d]:#d
+    if key_list[pygame.K_e]:#d
         us[3]=speed
     if key_list[pygame.K_LSHIFT]:#shitf
         us[0]=speed

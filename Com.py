@@ -1,9 +1,11 @@
 #根据op的身体节点坐标，根据决策树，返回命令
-import math
+from math import atan2, degrees, sqrt,pi
 from simple_pid import PID
 import time 
 
 def distance(a,b):
+    if a[0] is None or b[0] is None:
+        return None
     return int(sqrt((b[0]-a[0])**2+(b[1]-a[1])**2))
 
 def angle(A,B,C):
@@ -13,6 +15,7 @@ def angle(A,B,C):
     if dg>=180 and dg<360:
         dg=360-dg  #返回角度0-90
     return dg
+
 
 class Com:
     def __init__(self):
@@ -136,7 +139,7 @@ class Com:
         if kp[2][0]:  
             self.rightshd=[kp[2][0],kp[2][1]]
         else:
-            elf.rightshd=None
+            self.rightshd=None
         if kp[8][0]:
             self.midp=[kp[8][0],kp[8][1]]
         else:
@@ -322,8 +325,12 @@ class Com:
         comd=[0,0,0,0,0]#每轮循环都回中
         if userc[4]==1:
             self.check_mode(kp)
-            xoff=self.neck[0]-self.point[0]#计算修正量
-            yoff=self.neck[1]-self.point[1]
+            if self.neck:
+                xoff=self.neck[0]-self.point[0]#计算修正量
+                yoff=self.neck[1]-self.point[1]
+            else:
+                xoff=0
+                yoff=0
             
             #flymode 0普通跟踪，只修正偏航
             #        1跟随模式，修正偏航和锁定距离
@@ -366,7 +373,7 @@ class Com:
                 if self.lock_distance_mn and self.lock_distance_sd is None:#判断是否存在这两个值，没有则重建
                     if self.distance_midneck:#优先使用中轴线
                         self.lock_distance_mn=self.distance_midneck
-                    elif: self.distance_shd:
+                    elif self.distance_shd:
                         self.lock_distance_sd=self.distance_shd
                     
                 comd[0]=int(self.pid_yaw(xoff))
@@ -382,12 +389,12 @@ class Com:
                         pass
                     elif self.pose==1:
                         if self.lock_distance_mn and self.lock_distance_sd:
-                            self.lock_distance_mn--
-                            self.lock_distance_sd--
+                            self.lock_distance_mn-=1
+                            self.lock_distance_sd-=1
                     elif self.pose==2:
                         if self.lock_distance_mn and self.lock_distance_sd:
-                            self.lock_distance_mn++
-                            self.lock_distance_sd--
+                            self.lock_distance_mn+=1
+                            self.lock_distance_sd+=1
                     elif self.pose==3:
                         comd[1]=self.posespeed
                     elif self.pose==4:
@@ -402,7 +409,7 @@ class Com:
                 if self.lock_distance_mn and self.lock_distance_sd is None:#只赋值一次
                     if self.distance_midneck:
                         self.lock_distance_mn=self.distance_midneck
-                    elif: self.distance_shd:
+                    elif self.distance_shd:
                         self.lock_distance_sd=self.distance_shd
                     
                 #comd[0]=int(self.pid_yaw(xoff))
@@ -419,12 +426,12 @@ class Com:
                         pass
                     elif self.pose==1:
                         if self.lock_distance_mn and self.lock_distance_sd:
-                            self.lock_distance_mn--
-                            self.lock_distance_sd--
+                            self.lock_distance_mn-=1
+                            self.lock_distance_sd-=1
                     elif self.pose==2:
                         if self.lock_distance_mn and self.lock_distance_sd:
-                            self.lock_distance_mn++
-                            self.lock_distance_sd--
+                            self.lock_distance_mn+=1
+                            self.lock_distance_sd+=1
                     elif self.pose==3:
                         self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                         comd[0]=int(self.pid_yaw(xoff))

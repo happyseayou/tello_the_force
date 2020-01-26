@@ -1,12 +1,34 @@
 #main函数，主循环代码放这里
+import cv2
 import pygame
-from Pose import*
+import time
+import numpy
+
+import time 
 from Tello import Tello
+from simple_pid import PID
+from UI import FPS,UID
+from math import atan2, degrees, sqrt,pi
+from Pose import Pose
+from Com import*
+
 #未完成整理待续
 
+global ispose
+global us
+global isposetime
+isposetime=time.time()
+ispose=0
+us=[0,0,0,0,0,0]
 def usec(key_list):#定义键盘跟踪，暂时没有封转到类
     speed=50
-    us=[0,0,0,0,0,0]
+    global us
+    global ispose
+    global isposetime
+    for i in [0,1,2,3,5]:
+        us[i]=0
+    
+    #除了第4都归零，感觉是多余的
     if key_list[pygame.K_w]:#W 前进
         us[1]=speed
     if key_list[pygame.K_s]:#s后退
@@ -23,8 +45,19 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
         us[0]=speed
     if key_list[pygame.K_LCTRL]:#ctrl
         us[0]=-speed
-    
-
+    #ispose
+    if key_list[pygame.K_t]:
+        if ispose !=1:
+            if time.time()-isposetime>2:
+                us[4]=1
+                isposetime=time.time() 
+                ispose=1
+        else:
+            if  time.time()-isposetime>2:
+                us[4]=0
+                isposetime=time.time()
+                ispose=0
+   
     #特殊指令执行时通道指令无效且归零
     if key_list[pygame.K_0]:#0
         us[5]=2
@@ -83,15 +116,18 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
     return us
 
 
+
 def main():
     pygame.init()
     pygame.mixer.init()
-    screen = pygame.display.set_mode((20, 20), 0, 32)#键盘控制封不了类，只能用函数
-
+    screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
+    
     tello=Tello()
+    ui=UID()
     pose=Pose()
     com=Com()
-    ui=UID()
+
+     
     
 
     frame_skip=300
@@ -117,6 +153,7 @@ def main():
         com.read_tello_data(flight)#飞控获取数据用于判断指令
         flightstate=com.get_state()#命令状态
         pygame.display.update()
+        
         if userc[4]==1:#使用
             ui.show(image,kp,flightstate)#显示并负责播放声音
         else:#不用
