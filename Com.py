@@ -402,9 +402,9 @@ class Com:
         comd=[0,0,0,0,0]#每轮循环都回中
         if userc[4]==1:
             self.check_mode(kp)
-            if self.neck:
-                xoff=self.neck[0]-self.point[0]#计算修正量
-                yoff=self.neck[1]-self.point[1]
+            if self.target:
+                xoff=self.target[0]-self.point[0]#计算修正量
+                yoff=self.target[1]-self.point[1]
             else:
                 xoff=0
                 yoff=0
@@ -522,15 +522,16 @@ class Com:
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
                 self.pid_pith=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-20,20))
-                self.lock_distance_sd=300     #最近肩宽   
+                self.lock_distance_sd=290     #最近肩宽   
                 if self.palmflag is None:
                     comd[0]=int(-self.pid_yaw(xoff))
                     comd[3]=int(self.pid_thro(yoff))
                     if self.distance_shd:
                         comd[2]=int(-self.pid_pith(self.lock_distance_sd-self.distance_shd))
                 if self.distance_shd and self.lock_distance_sd:
-                    if abs(int(self.distance_shd-self.lock_distance_sd))<50:
+                    if self.distance_shd>self.lock_distance_sd:
                         if self.palmflag is None:
+                            comd[0]=comd[1]=comd[2]=comd[3]=0#手掌降落时所有舵量为0
                             self.palmflag=1
                             self.flymode=4
                             self.preflymode=4
