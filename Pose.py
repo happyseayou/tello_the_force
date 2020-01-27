@@ -6,7 +6,7 @@ import os
 from sys import platform
 import argparse
 #from tello import *
-#from UI import FPS
+from UI import FPS
 from math import atan2, degrees, sqrt,pi
 import numpy as np
 
@@ -107,7 +107,7 @@ class Pose:
         per_image=[]
         per_image.append(np.mean(frame[0]))
         brightness=np.mean(per_image)
-        if brightness<70:
+        if brightness<10:#调敏感度太高了容易emmmmm割到手
             press=1
         else:
             press=0
@@ -126,13 +126,13 @@ if __name__=='__main__':
 
     video=cv2.VideoCapture(0)
     
-   # fps=FPS()
+    fps=FPS()
     my_pose=Pose()
     while True:
         ok,frame=video.read()
         if not ok:
             break
-       # fps.update()
+        fps.update()
         #frame=cv2.imread("./123.jpg") 
         frame2=frame
         #cv2.imshow("raw",frame)   
@@ -161,7 +161,7 @@ if __name__=='__main__':
             cv2.circle(frame2, (show[1][0], show[1][1]), 35, (0, 0, 255), -1)
         
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
-       # fps.display(frame2)
+        fps.display(frame2)
         frame3=cv2.resize(frame2,(960,720))
         cv2.imshow("raw",frame3) 
         #cv2.imshow("1",show[2])

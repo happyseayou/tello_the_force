@@ -10,6 +10,7 @@ class FPS: #这个模块摘自tello_openpose
         self.fps=0
         self.start=0
         
+        
     def update(self):
         if self.nbf%10==0:
             if self.start != 0:
@@ -106,6 +107,7 @@ class UID():#显示类
     def __init__(self):
         self.fps=FPS()
         self.player=player()
+        self.preflightstate2=-1
         #self.hubw=hubw()
 
     def show(self,image,kp,flightstate):
@@ -115,15 +117,17 @@ class UID():#显示类
             self.fps.update()
             #cv2.imshow('tello',image)
         else:
-            self.drawer(image,kp)
+            self.drawer(image,kp,flightstate)
             image=cv2.resize(image,(960,720))
             image=self.hubw(image,flightstate)
-            #self.player.sound(flightstate[2])
+            if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
+                self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
+                self.preflightstate2=flightstate[2]
             self.fps.update()
         cv2.imshow('tello',image)
 
 
-    def drawer(self,image,kp):
+    def drawer(self,image,kp,flightstate):
         #画点
         for i in [0,1,2,3,4,5,6,7,8,17,18]:
             if kp[i][0] and kp[i][1]:
@@ -144,12 +148,12 @@ class UID():#显示类
         #以下是跟踪箭头部分
         x11=320#起点
         y11=240
-        x22=kp[0][0]#终点kp
-        y22=kp[0][1]
+        x22=flightstate[13]#终点kp
+        y22=flightstate[14]
         if x11 and x22 and y11 and y22:
-            cv2.arrowedLine(image, (x11,y11), (x22,y22), (0,0,255),5,8,0,0.3)
-            cv2.circle(image, (x11,y11), 3, (0, 255, 255), -1)
-            cv2.circle(image, (x22,y22), 4, (255, 0, 255), -1)
+            cv2.arrowedLine(image, (x11,y11), (x22,y22), (0,0,255),5,8,0,0.1)
+            cv2.circle(image, (x11,y11), 7, (0, 255, 255), -1)
+            cv2.circle(image, (x22,y22), 7, (255, 0, 255), -1)
 
     def hubw(self,image,flightstate):
         #这里摘自tello_openpose

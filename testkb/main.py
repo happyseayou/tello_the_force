@@ -8,6 +8,7 @@ import pygame
 import time
 from Tello import Tello
 from Com import Com
+from UI import FPS
 
 
 
@@ -98,7 +99,7 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((20, 20), 0, 32)
     
-    
+    fps = FPS()
 
     tello=Tello()
     com=Com()
@@ -108,6 +109,7 @@ def main():
         if 0 < frame_skip:
             frame_skip = frame_skip - 1
             continue
+        fps.update()
         start_time = time.time()
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         key_list = pygame.key.get_pressed()
@@ -115,6 +117,7 @@ def main():
         comd=com.get_comd(userc)
         tello.send_comd(comd)
         pygame.display.update()
+        fps.display(image)
         cv2.imshow('t',image)
         if frame.time_base < 1.0/60:
             time_base = 1.0/60

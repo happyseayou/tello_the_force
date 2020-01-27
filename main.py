@@ -121,7 +121,9 @@ def main():
     pygame.init()
     pygame.mixer.init()
     screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
-    
+    pygame.display.set_caption('没卵用的窗口')
+    background=pygame.image.load('media//tello background1.png')
+
     tello=Tello()
     ui=UID()
     pose=Pose()
@@ -152,6 +154,8 @@ def main():
         flight=tello.send_data()#飞行数据
         com.read_tello_data(flight)#飞控获取数据用于判断指令
         flightstate=com.get_state()#命令状态
+
+        screen.blit(background,(0,0))
         pygame.display.update()
         
         if userc[4]==1:#使用
