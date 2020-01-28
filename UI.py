@@ -36,13 +36,13 @@ class player():
         self.sound_mode_2 = pygame.mixer.Sound("playsounds\\平行跟随.wav")
         self.sound_mode_3 = pygame.mixer.Sound("playsounds\\目标丢失.wav")
         self.sound_mode_4 = pygame.mixer.Sound("playsounds\\降落.wav")
-        self.sound_mode_5 = pygame.mixer.Sound("playsounds\\手掌降落.wav")
+        self.sound_mode_5 = pygame.mixer.Sound("playsounds\\接近中.wav")
         self.sound_mode_6 = pygame.mixer.Sound("playsounds\\抛出即可飞行.wav")
         #self.sound_mode_7 = pygame.mixer.Sound("playsounds\\起飞.wav")
         #键盘操作下
         self.key_mode_8=pygame.mixer.Sound("playsounds\\起飞.wav")#起飞
         self.key_mode_9=self.sound_mode_6#抛飞
-        self.key_mode_10=self.sound_mode_5
+        self.key_mode_10=pygame.mixer.Sound("playsounds\\手掌降落.wav")
         self.key_mode_11=self.sound_mode_4
         #键盘下，翻滚动作
         self.key_mode_12=pygame.mixer.Sound("playsounds\\前空翻.wav")
@@ -183,7 +183,11 @@ class UID():#显示类
             hud.add("flying", (0,255,0))
         else:
             hud.add("nofly", (0,255,0))
-        hud.add(f"bat {flightstate[1]}")
+        if flightstate[1]<20:
+            hud.add(f"bat {flightstate[1]}battary low",(0,0,255))#低电量
+        else:
+            hud.add(f"bat {flightstate[1]}")
+        
         #flymode 0普通跟踪，只修正偏航
         #        1跟随模式，修正偏航和锁定距离
         #        2平行跟随，修正roll和锁定距离

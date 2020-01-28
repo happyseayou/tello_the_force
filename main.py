@@ -120,7 +120,7 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
 def main():
     pygame.init()
     pygame.mixer.init()
-    screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
+    screen = pygame.display.set_mode((640, 480), 0, 32)#键盘控制封不了类，只能用函数
     pygame.display.set_caption('没卵用的窗口')
     background=pygame.image.load('media//tello background1.png')
 
