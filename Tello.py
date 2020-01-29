@@ -7,6 +7,8 @@ import numpy
 import time
 from Pose import *
 from UI import FPS
+from math import atan2, degrees, sqrt,pi,atan
+
 
 
 
@@ -14,6 +16,20 @@ from UI import FPS
 class Tello:
 
     def __init__(self):
+        #传感器数据
+         #mvo单目视觉里程计
+        self.pos_x = 0.0
+        self.pos_y = 0.0
+        self.pos_z = 0.0
+        self.vel_x = 0.0
+        self.vel_y = 0.0
+        self.vel_z = 0.0
+        #imu惯性测量单元
+        self.acc_x = 0.0
+        self.acc_y = 0.0
+        self.acc_z = 0.0
+        self.gyro_x = 0.0
+        
    
         #初始参数
         self.battery=None
@@ -31,6 +47,7 @@ class Tello:
 
             #订阅飞行数据信息
             self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA,self.flight_data_handler)
+            self.drone.subscribe(self.drone.EVENT_LOG_DATA,self.log_data_handler)
 
             #self.drone.wait_for_connection(60.0)
             retry = 3
@@ -95,13 +112,45 @@ class Tello:
         self.wifi=data.wifi_strength
         #这个一个接受数据的函数
 
+    def log_data_handler(self, event, sender, data):
+        """
+            Listener to log data from the drone.
+        """  
+        #mvo单目视觉里程计
+        self.pos_x = 100*data.mvo.pos_x
+        self.pos_y = 100*data.mvo.pos_y
+        self.pos_z = 100*data.mvo.pos_z
+        self.vel_x = 100*data.mvo.vel_x
+        self.vel_y = 100*data.mvo.vel_y
+        self.vel_z = 100*data.mvo.vel_z
+        #imu惯性测量单元
+        self.acc_x = 100*data.imu.acc_x#用于计算roll和pitch的角度
+        self.acc_y = 100*data.imu.acc_y
+        self.acc_z = 100*data.imu.acc_z
+        
+        
+        
+
     def send_data(self):#用于发送数据给com
         bat=self.battery
         is_fly=self.is_fly
         tftimer=self.throw_fly_timer
         height=self.height
         wifi=self.wifi
-        return bat,is_fly,tftimer,height,wifi
+        #传感器数据
+         #mvo单目视觉里程计
+        posx=self.pos_x #位置信息以后可用于轨道规划
+        posy=self.pos_y 
+        posz=self.pos_z 
+        
+        velz=self.vel_z #垂直速度
+        velxy=sqrt(self.vel_x**2+self.vel_y**2)      #水平速度
+        #imu惯性测量单元   
+        anglerroll=degrees(atan(self.acc_y/self.acc_z))#俯仰角与翻滚角
+        anglerpitch=degrees(atan(self.acc_x/self.acc_z))
+        return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy
+
+    
     
   
 
@@ -115,7 +164,7 @@ if __name__=='__main__':
 
 
     tello=Tello()
-    my_pose=Pose()
+    #my_pose=Pose()
     fps=FPS()
     frame_skip = 300
     
@@ -127,30 +176,37 @@ if __name__=='__main__':
         start_time = time.time()
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
         image = cv2.resize(image,(640,480))
-        show=my_pose.get_kp(image)
-        angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
-        angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
+        #show=my_pose.get_kp(image)
+        #angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
+        #angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
         #if angle567:
-        print('左'+str(angle234)+' '+'右'+str(angle567))
+       # print('左'+str(angle234)+' '+'右'+str(angle567))
         
        # print(str(tello.is_fly))
         #else:
           #  print('ooooops')
-        if show[2][0]:#值判断一个就好
-            cv2.circle(image, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
-        if show[3][0]:
-            cv2.circle(image, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
-        if show[4][0]:
-            cv2.circle(image, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
-        if show[5][0]:#值判断一个就好
-            cv2.circle(image, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
-        if show[6][0]:
-            cv2.circle(image, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
-        if show[7][0]:
-            cv2.circle(image, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
-        fps.display(image)
+       # if show[2][0]:#值判断一个就好
+      #      cv2.circle(image, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
+      #  if show[3][0]:
+      #      cv2.circle(image, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
+      #  if show[4][0]:
+       #     cv2.circle(image, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
+      #  if show[5][0]:#值判断一个就好
+        #    cv2.circle(image, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
+     #   if show[6][0]:
+       #     cv2.circle(image, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
+       # if show[7][0]:
+        #    cv2.circle(image, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
+        a=tello.send_data()
+        b=[0,0,0,0,0,0,0,0,0]
+        for i in [5,6,7,8]:
+            b[i]=int(a[i])
+        
+        
+        
         cv2.imshow('Original', image)
-
+        
+        print(b)
         if frame.time_base < 1.0/60:
             time_base = 1.0/60
         else:

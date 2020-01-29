@@ -184,9 +184,9 @@ class UID():#显示类
         else:
             hud.add("nofly", (0,255,0))
         if flightstate[1]<20:
-            hud.add(f"bat {flightstate[1]}battary low",(0,0,255))#低电量
+            hud.add(f"bat {flightstate[1]}% battary low",(0,0,255))#低电量
         else:
-            hud.add(f"bat {flightstate[1]}")
+            hud.add(f"bat {flightstate[1]}%")
         
         #flymode 0普通跟踪，只修正偏航
         #        1跟随模式，修正偏航和锁定距离
@@ -260,6 +260,10 @@ class UID():#显示类
         hud.add(f"dist {flightstate[9]}")
         hud.add(f"throw and go timer {flightstate[10]}")
         hud.add(f"height {flightstate[11]}")
-        hud.add(f"wifi {flightstate[12]}")
+        hud.add(f"velxy {flightstate[17]:8.1f}")
+        hud.add(f"velz {flightstate[18]:8.1f}")
+        hud.add(f"anglerroll {flightstate[15]:8.1f}")
+        hud.add(f"anglerpitch {flightstate[16]:8.1f}")
+        hud.add(f"wifi {flightstate[12]:8.1f}")
         hud.draw(image)
         return image

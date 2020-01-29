@@ -122,7 +122,11 @@ def main():
     pygame.mixer.init()
     screen = pygame.display.set_mode((640, 480), 0, 32)#键盘控制封不了类，只能用函数
     pygame.display.set_caption('没卵用的窗口')
-    background=pygame.image.load('media//tello background1.png')
+    background=pygame.image.load('media//uimain.png')
+    roll=pygame.image.load('media//roll.png')
+    rollrect=roll.get_rect()
+    heightp=pygame.image.load('media//heightpoint.png')
+    betp=pygame.image.load('media//bettarypoint.png')
 
     tello=Tello()
     ui=UID()
@@ -154,8 +158,18 @@ def main():
         flight=tello.send_data()#飞行数据
         com.read_tello_data(flight)#飞控获取数据用于判断指令
         flightstate=com.get_state()#命令状态
-
+        
         screen.blit(background,(0,0))
+        newroll=pygame.transform.rotate(roll,-flightstate[15])
+        newrect=newroll.get_rect(center=rollrect.center)
+        
+        #screen.blit(roll,(230,flightstate[16]*24+62))
+        screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*6))
+
+
+        screen.blit(heightp,(64,416-flightstate[11]*13))
+        screen.blit(betp,(550,(100-flightstate[1])*4+45))
+        
         pygame.display.update()
         
         if userc[4]==1:#使用

@@ -28,8 +28,13 @@ class Com:
         self.throwflytimer=None
         self.height=None
         self.wifi=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.comd=None 
+        #遥测姿态数据等
+        self.anglerroll=0.0
+        self.anglerpitch=0.0
+        self.velz=0.0
+        self.velxy=0.0
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
         self.posespeed=30
@@ -88,7 +93,7 @@ class Com:
         self.throwflytimer=None
         self.height=None
         self.wifi=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.comd=None 
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
@@ -599,7 +604,11 @@ class Com:
         else:
             self.state[13]=None
             self.state[14]=None
-
+        #遥测数据
+        self.state[15]=self.anglerroll
+        self.state[16]=self.anglerpitch
+        self.state[17]=self.velxy
+        self.state[18]=self.velz
             
         state=self.state
         return state
@@ -610,4 +619,9 @@ class Com:
         self.throwflytimer=data[2]
         self.height=data[3]
         self.wifi=data[4]
+        #遥测数据
+        self.anglerroll=data[5]
+        self.anglerpitch=data[6]
+        self.velxy=data[8]
+        self.velz=data[7]
 
