@@ -28,13 +28,19 @@ class Com:
         self.throwflytimer=None
         self.height=None
         self.wifi=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.comd=None 
         #遥测姿态数据等
         self.anglerroll=0.0
         self.anglerpitch=0.0
         self.velz=0.0
         self.velxy=0.0
+        self.posx=0.0
+        self.posy=0.0
+        self.posz=0.0
+        self.pitch=0.0#四元数解算
+        self.roll=0.0
+        self.yew=0.0
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
         self.posespeed=30
@@ -93,7 +99,7 @@ class Com:
         self.throwflytimer=None
         self.height=None
         self.wifi=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.comd=None 
         #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 备用
         self.pose=None    #用于判读手势操作
@@ -284,7 +290,7 @@ class Com:
             #判断fly_mode
             #首先是单手
                #手掌降落模式5
-            if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]):
+            if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]<self.nose[0]):
                 if self.righand_letear<50:#这个值还不知道，先这样设置
                     if self.flymode!=5:#将进入模式
                         if time.time()-self.flymodechange>2:#判断时间是大于2秒，否则不执行
@@ -297,7 +303,7 @@ class Com:
                             self.flymode=0
                             self.preflymode=self.flymode
               #降落4
-            elif (self.righthand[1]>self.rightshd[1]) and (self.letfhand[1]<self.letfshd[1]):
+            elif (self.righthand[1]>self.rightshd[1]) and (self.letfhand[1]<self.letfshd[1]) and (self.letfhand[0]>self.nose[0]):
                 if self.lethand_rigear<50:#这个值还不知道，先这样设置
                     if self.flymode!=4:#将进入模式
                         if time.time()-self.flymodechange>2:#判断时间是否大于2秒，否则不执行
@@ -609,6 +615,13 @@ class Com:
         self.state[16]=self.anglerpitch
         self.state[17]=self.velxy
         self.state[18]=self.velz
+        self.state[19]=self.posx
+        self.state[20]=self.posy
+        self.state[21]=self.posz
+        self.state[22]=self.pitch
+        self.state[23]=self.roll
+        self.state[24]=self.yew  #-45-45
+        
             
         state=self.state
         return state
@@ -624,4 +637,10 @@ class Com:
         self.anglerpitch=data[6]
         self.velxy=data[8]
         self.velz=data[7]
+        self.posx=data[9]
+        self.posy=data[10]
+        self.posz=data[11]
+        self.pitch=data[12]
+        self.roll=data[13]
+        self.yew=data[14]
 

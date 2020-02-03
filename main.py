@@ -160,11 +160,11 @@ def main():
         flightstate=com.get_state()#命令状态
         
         screen.blit(background,(0,0))
-        newroll=pygame.transform.rotate(roll,-flightstate[15])
+        newroll=pygame.transform.rotate(roll,-flightstate[15]*3)
         newrect=newroll.get_rect(center=rollrect.center)
         
         #screen.blit(roll,(230,flightstate[16]*24+62))
-        screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*6))
+        screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*10))
 
 
         screen.blit(heightp,(64,416-flightstate[11]*13))

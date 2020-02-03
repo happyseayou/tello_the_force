@@ -7,7 +7,7 @@ import numpy
 import time
 from Pose import *
 from UI import FPS
-from math import atan2, degrees, sqrt,pi,atan
+from math import atan2, degrees, sqrt,pi,atan,asin
 
 
 
@@ -29,7 +29,10 @@ class Tello:
         self.acc_y = 0.0
         self.acc_z = 0.0
         self.gyro_x = 0.0
-        
+        self.q0=0.0
+        self.q1=0.0
+        self.q2=0.0
+        self.q3=0.0
    
         #初始参数
         self.battery=None
@@ -64,14 +67,30 @@ class Tello:
         
         self.frame_skip=300
 
-
-
+    """
+    def send_super_comd(self,comd):#通过命令直接控制飞机
+        #self.drone.sock.sendto('command',('192.168.10.1', 8889))
+        x=comd[0]
+        y=comd[1]
+        z=comd[2]
+        speed=comd[4]
+        supercmd=comd[5]#直接是文本命令
+        if supercmd==0:
+            cmd=supercmd
+        else:
+            cmd='go'+' '+str(x)+' '+str(y)+' '+str(z)+' '+str(speed)
+        self.drone.sock.sendto(cmd,('192.168.10.1', 8889))
+    """
 
     def send_comd(self,comd):#comd[]是一个数组，一共五个分别代表yaw，roll，pitch，throttle，command这个代表起飞等命令
         if comd[4]==0:#有特殊命令的时候不能执行任何操作
+            #if comd[0]!=0:#不等于0才发送
             self.drone.clockwise(comd[0])       #这里的comd是速度的量
+           #if comd[0]!=0:
             self.drone.right(comd[1])
+            #if comd[0]!=0:
             self.drone.forward(comd[2])
+            #if comd[0]!=0:
             self.drone.up(comd[3])
         else:                               #cond[4]是命令
             if comd[4]==1:
@@ -117,16 +136,22 @@ class Tello:
             Listener to log data from the drone.
         """  
         #mvo单目视觉里程计
-        self.pos_x = 100*data.mvo.pos_x
-        self.pos_y = 100*data.mvo.pos_y
-        self.pos_z = 100*data.mvo.pos_z
-        self.vel_x = 100*data.mvo.vel_x
-        self.vel_y = 100*data.mvo.vel_y
-        self.vel_z = 100*data.mvo.vel_z
+        self.pos_x = data.mvo.pos_x*10
+        self.pos_y = data.mvo.pos_y*10
+        self.pos_z = data.mvo.pos_z*10
+        
         #imu惯性测量单元
         self.acc_x = 100*data.imu.acc_x#用于计算roll和pitch的角度
         self.acc_y = 100*data.imu.acc_y
         self.acc_z = 100*data.imu.acc_z
+        self.vel_x = data.imu.vg_x*10#这个数据比视觉的准x10单位分米
+        self.vel_y = data.imu.vg_y*10
+        self.vel_z = data.imu.vg_z*10
+        #四元数
+        self.q0=data.imu.q0
+        self.q1=data.imu.q1
+        self.q2=data.imu.q2
+        self.q3=data.imu.q3
         
         
         
@@ -142,13 +167,25 @@ class Tello:
         posx=self.pos_x #位置信息以后可用于轨道规划
         posy=self.pos_y 
         posz=self.pos_z 
-        
+        #print(posx,posy,posz)
         velz=self.vel_z #垂直速度
         velxy=sqrt(self.vel_x**2+self.vel_y**2)      #水平速度
-        #imu惯性测量单元   
-        anglerroll=degrees(atan(self.acc_y/self.acc_z))#俯仰角与翻滚角
+        #imu惯性测量单元
+        #用重力加速度算俯仰角与翻滚角   
+        anglerroll=degrees(atan(self.acc_y/self.acc_z))
         anglerpitch=degrees(atan(self.acc_x/self.acc_z))
-        return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy
+        #用四元数算
+        q0=self.q0
+        q1=self.q1
+        q2=self.q2
+        q3=self.q3#注意对应坐标
+        #需要起飞后修正的值,每次起飞0点都不一样，只有yaw每次开机更新，有时定位失败要将进行暂停
+        
+
+        pitch=degrees(asin(2*q0*q2-2*q3*q1))
+        roll=degrees(atan2(2*q0*q1+2*q3*q2,1-2*q1**2-2*q2**2))
+        yew= degrees(atan2(2*q1*q2+2*q0*q3,1-2*q2**2-2*q3**2))
+        return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy,posx,posy,posz,pitch,roll,yew
 
     
     
