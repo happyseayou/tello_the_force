@@ -290,7 +290,7 @@ class Com:
             #判断fly_mode
             #首先是单手
                #手掌降落模式5
-            if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]>self.nose[0]):
+            if (self.righthand[1]<self.rightshd[1]) and (self.letfhand[1]>self.letfshd[1]) and (self.righthand[0]>self.nose[0]):#还要判断手过鼻子
                 if self.righand_letear<50:#这个值还不知道，先这样设置
                     if self.flymode!=5:#将进入模式
                         if time.time()-self.flymodechange>2:#判断时间是大于2秒，否则不执行
@@ -303,7 +303,7 @@ class Com:
                             self.flymode=0
                             self.preflymode=self.flymode
               #降落4
-            elif (self.righthand[1]>self.rightshd[1]) and (self.letfhand[1]<self.letfshd[1]) and (self.letfhand[0]<self.nose[0]):
+            elif (self.righthand[1]>self.rightshd[1]) and (self.letfhand[1]<self.letfshd[1]) and (self.letfhand[0]<self.nose[0]):#还要判断手过鼻子
                 if self.lethand_rigear<50:#这个值还不知道，先这样设置
                     if self.flymode!=4:#将进入模式
                         if time.time()-self.flymodechange>2:#判断时间是否大于2秒，否则不执行
