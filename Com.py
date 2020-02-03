@@ -28,7 +28,7 @@ class Com:
         self.throwflytimer=None
         self.height=None
         self.wifi=None
-        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.state=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]#长度保持和reset一致
         self.comd=None 
         #遥测姿态数据等
         self.anglerroll=0.0
