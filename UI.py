@@ -167,9 +167,7 @@ class UID():#显示类
             def draw(self, frame):
                 i=0
                 for (info, color) in self.infos:
-                    cv2.putText(frame, info, (0, 30 + (i * 30)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, color, 2) #lineType=30)
+                    cv2.putText(frame, info, (0, 30 + (i * 30)),cv2.FONT_HERSHEY_SIMPLEX,1.0, color, 2) #lineType=30)
                     i+=1
 
         hud=HUD()
@@ -262,15 +260,16 @@ class UID():#显示类
         hud.add(f"height {flightstate[11]}")
         hud.add(f"velxy {flightstate[17]:8.1f}")
         hud.add(f"velz {flightstate[18]:8.1f}")
-        hud.add(f"anglerroll {flightstate[15]:8.1f}")
-        hud.add(f"anglerpitch {flightstate[16]:8.1f}")
+        #hud.add(f"anglerroll {flightstate[15]:8.1f}")
+        #hud.add(f"anglerpitch {flightstate[16]:8.1f}")
         hud.add(f"wifi {flightstate[12]:8.1f}")
         hud.add(f"posx {flightstate[19]:8.1f}")
         hud.add(f"posy {flightstate[20]:8.1f}")
         hud.add(f"posz {flightstate[21]:8.1f}")
-        hud.add(f"zero pitch {flightstate[22]:8.1f}")#四元数解算的旋转是与启动点为原点的，可用于定位
-        hud.add(f"zero roll {flightstate[23]:8.1f}")
+        #hud.add(f"zero pitch {flightstate[22]:8.1f}")#四元数解算的旋转是与启动点为原点的，可用于定位
+        #hud.add(f"zero roll {flightstate[23]:8.1f}")
         hud.add(f"zero yew {flightstate[24]:8.1f}")
+        hud.add(f"visualstate {flightstate[25]}")#6定位成功，1定位失败，11未知
         
         hud.draw(image)
         return image

@@ -11,6 +11,7 @@ from UI import FPS,UID
 from math import atan2, degrees, sqrt,pi
 from Pose import Pose
 from Com import*
+#import profile
 
 #未完成整理待续
 
@@ -117,25 +118,33 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
 
 
 
+
 def main():
-    pygame.init()
-    pygame.mixer.init()
-    screen = pygame.display.set_mode((640, 480), 0, 32)#键盘控制封不了类，只能用函数
-    pygame.display.set_caption('没卵用的窗口')
-    background=pygame.image.load('media//uimain.png')
-    roll=pygame.image.load('media//roll.png')
-    rollrect=roll.get_rect()
-    heightp=pygame.image.load('media//heightpoint.png')
-    betp=pygame.image.load('media//bettarypoint.png')
+    isdisplay=1
 
     tello=Tello()
+    
+    pygame.init()
+    pygame.mixer.init()
+
+    if isdisplay==1:
+        screen = pygame.display.set_mode((640, 480), 0, 32)#键盘控制封不了类，只能用函数
+        pygame.display.set_caption('没卵用的窗口')
+        background=pygame.image.load('media//uimain.png')
+        roll=pygame.image.load('media//roll.png')
+        rollrect=roll.get_rect()
+        heightp=pygame.image.load('media//heightpoint.png')
+        betp=pygame.image.load('media//bettarypoint.png')
+    else:
+        screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
+        pygame.display.set_caption('没卵用的窗口')
+        background=pygame.image.load('media//tello background1.png')
+
     ui=UID()
     pose=Pose()
     com=Com()
 
-     
     
-
     frame_skip=300
     for frame in tello.container.decode(video=0):#一定要用这个循环来获取才不会产生delay
         if 0 < frame_skip:
@@ -159,19 +168,20 @@ def main():
         com.read_tello_data(flight)#飞控获取数据用于判断指令
         flightstate=com.get_state()#命令状态
         
-        screen.blit(background,(0,0))
-        newroll=pygame.transform.rotate(roll,-flightstate[15]*3)
-        newrect=newroll.get_rect(center=rollrect.center)
-        
-        #screen.blit(roll,(230,flightstate[16]*24+62))
-        screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*10))
+        if isdisplay==1:
+            screen.blit(background,(0,0))
+            newroll=pygame.transform.rotate(roll,-flightstate[15]*3)
+            newrect=newroll.get_rect(center=rollrect.center)
+            screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*10))
+            screen.blit(heightp,(64,416-flightstate[11]*13))
+            screen.blit(betp,(550,(100-flightstate[1])*4+45))
+            pygame.display.update()
+        else:
+            screen.blit(background,(0,0))
+            pygame.display.update()
 
+        
 
-        screen.blit(heightp,(64,416-flightstate[11]*13))
-        screen.blit(betp,(550,(100-flightstate[1])*4+45))
-        
-        pygame.display.update()
-        
         if userc[4]==1:#使用
             ui.show(image,kp,flightstate)#显示并负责播放声音
         else:#不用
@@ -185,10 +195,13 @@ def main():
         k = cv2.waitKey(1) & 0xff
         if k == 27 : 
             pygame.display.quit()
+            tello.drone.quit()#退出
             break
     cv2.destroyAllWindows()
+    
 
 if __name__=='__main__':
     main()
+    #rofile.run("main()")
 
         

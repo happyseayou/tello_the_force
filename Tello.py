@@ -24,6 +24,7 @@ class Tello:
         self.vel_x = 0.0
         self.vel_y = 0.0
         self.vel_z = 0.0
+        self.visual_state=None
         #imu惯性测量单元
         self.acc_x = 0.0
         self.acc_y = 0.0
@@ -44,6 +45,7 @@ class Tello:
         #开始连接飞机
         self.drone=tellopy.Tello()
         try:
+            self.drone.set_loglevel(2)
             self.drone.connect()
             self.drone.set_video_encoder_rate(2)
             self.drone.start_video()
@@ -53,15 +55,15 @@ class Tello:
             self.drone.subscribe(self.drone.EVENT_LOG_DATA,self.log_data_handler)
 
             #self.drone.wait_for_connection(60.0)
-            retry = 3
-            self.container=None   #container用于存放帧
-            while self.container is None and 0 < retry:
-                retry-=1
-                try:
-                    self.container=av.open(self.drone.get_video_stream())
-                except av.AVError as ave:
-                    print(ave)
-                    print('retry...')
+            #retry = 3
+            #self.container=None   #container用于存放帧
+            #while self.container is None and 0 < retry:
+                #retry-=1
+                #try:
+            self.container=av.open(self.drone.get_video_stream())
+                #except av.AVError as ave:
+                   # print(ave)
+                    #print('retry...')
         except:
             print('ooooooooooooooo')
         
@@ -129,7 +131,8 @@ class Tello:
         #self.height=data.height
         self.height=data.height
         self.wifi=data.wifi_strength
-        #这个一个接受数据的函数
+        self.visual_state=data.fly_mode
+        #这个一个接受数据1的函数
 
     def log_data_handler(self, event, sender, data):
         """
@@ -185,8 +188,9 @@ class Tello:
         pitch=degrees(asin(2*q0*q2-2*q3*q1))
         roll=degrees(atan2(2*q0*q1+2*q3*q2,1-2*q1**2-2*q2**2))
         yew= degrees(atan2(2*q1*q2+2*q0*q3,1-2*q2**2-2*q3**2))
-        return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy,posx,posy,posz,pitch,roll,yew
 
+        visual_state=self.visual_state
+        return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy,posx,posy,posz,pitch,roll,yew,visual_state
     
     
   
@@ -198,11 +202,12 @@ class Tello:
 
 if __name__=='__main__':
 
-
-
-    tello=Tello()
-    #my_pose=Pose()
+    ispose=1
     fps=FPS()
+    tello=Tello()
+    if ispose==1:
+        my_pose=Pose()
+    
     frame_skip = 300
     
     for frame in tello.container.decode(video=0):
@@ -212,44 +217,36 @@ if __name__=='__main__':
         fps.update()
         start_time = time.time()
         image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-        image = cv2.resize(image,(640,480))
-        #show=my_pose.get_kp(image)
-        #angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
-        #angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
-        #if angle567:
-       # print('左'+str(angle234)+' '+'右'+str(angle567))
-        
-       # print(str(tello.is_fly))
-        #else:
-          #  print('ooooops')
-       # if show[2][0]:#值判断一个就好
-      #      cv2.circle(image, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
-      #  if show[3][0]:
-      #      cv2.circle(image, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
-      #  if show[4][0]:
-       #     cv2.circle(image, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
-      #  if show[5][0]:#值判断一个就好
-        #    cv2.circle(image, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
-     #   if show[6][0]:
-       #     cv2.circle(image, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
-       # if show[7][0]:
-        #    cv2.circle(image, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
-        a=tello.send_data()
-        b=[0,0,0,0,0,0,0,0,0]
-        for i in [5,6,7,8]:
-            b[i]=int(a[i])
+        if ispose==1:
+            image = cv2.resize(image,(640,480))
+            show=my_pose.get_kp(image)
+            if show[2][0]:#值判断一个就好
+                cv2.circle(image, (show[2][0], show[2][1]), 3, (0, 0, 255), -1)
+            if show[3][0]:
+                cv2.circle(image, (show[3][0], show[3][1]), 3, (0, 0, 255), -1)
+            if show[4][0]:
+                cv2.circle(image, (show[4][0], show[4][1]), 3, (0, 0, 255), -1)
+            if show[5][0]:#值判断一个就好
+                cv2.circle(image, (show[5][0], show[5][1]), 3, (0, 0, 255), -1)
+            if show[6][0]:
+                cv2.circle(image, (show[6][0], show[6][1]), 3, (0, 0, 255), -1)
+            if show[7][0]:
+                cv2.circle(image, (show[7][0], show[7][1]), 3, (0, 0, 255), -1)
         
         
-        
+        fps.display(image)
         cv2.imshow('Original', image)
         
-        print(b)
+       
         if frame.time_base < 1.0/60:
             time_base = 1.0/60
         else:
             time_base = frame.time_base
         frame_skip = int((time.time() - start_time)/time_base)
         k = cv2.waitKey(1) & 0xff
-        if k == 27 : break
+        if k == 27 : 
+            tello.drone.quit()#退出
+            break
+            
     
     cv2.destroyAllWindows()

@@ -9,6 +9,7 @@ import argparse
 from UI import FPS
 from math import atan2, degrees, sqrt,pi
 import numpy as np
+#import profile
 
 
 
@@ -89,8 +90,8 @@ class Pose:
                     xy[i][0]=int(x)
                     xy[i][1]=int(y)
                 else:
-                    xy[i][0]=None       
-                    xy[i][1]=None 
+                    xy[i][0]=xy[i][1]=None       
+                     
                 if i==10:
                     xy[i][0]=xy[i][1]=brightness
         except:
@@ -98,8 +99,8 @@ class Pose:
                 if i==10:
                     xy[i][0]=xy[i][1]=brightness
                 else:
-                    xy[i][0]=None 
-                    xy[i][1]=None
+                    xy[i][0]=xy[i][1]=None 
+                    
         return xy   #xy[i][k]i代表第几个点k代表第几个坐标
     
     def framebightness(self,frame):#获取图片亮度，返回按压
@@ -117,17 +118,12 @@ class Pose:
 
         
         
-
-
-
-
-#读取摄像头测试
-if __name__=='__main__':
-
+def runtest():
     video=cv2.VideoCapture(0)
-    
+    ispose=1
     fps=FPS()
-    my_pose=Pose()
+    if ispose:
+        my_pose=Pose()
     while True:
         ok,frame=video.read()
         if not ok:
@@ -135,30 +131,31 @@ if __name__=='__main__':
         fps.update()
         #frame=cv2.imread("./123.jpg") 
         frame2=frame
-        #cv2.imshow("raw",frame)   
-        show=my_pose.get_kp(frame)
-        #print(show[7])
-        
-        angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
-        angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
-        #if angle567:
-        print(str(angle234)+' '+str(angle567)+' '+str(show[10][0]))
-        #else:
-          #  print('ooooops')
-        if show[2][0]:#值判断一个就好
-            cv2.circle(frame2, (show[2][0], show[2][1]), 10, (0, 0, 255), -1)
-        if show[3][0]:
-            cv2.circle(frame2, (show[3][0], show[3][1]), 10, (0, 0, 255), -1)
-        if show[4][0]:
-            cv2.circle(frame2, (show[4][0], show[4][1]), 10, (0, 0, 255), -1)
-        if show[5][0]:#值判断一个就好
-            cv2.circle(frame2, (show[5][0], show[5][1]), 10, (0, 0, 255), -1)
-        if show[6][0]:
-            cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
-        if show[7][0]:
-            cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
-        if show[1][0]:
-            cv2.circle(frame2, (show[1][0], show[1][1]), 35, (0, 0, 255), -1)
+        #cv2.imshow("raw",frame) 
+        if ispose:  
+            show=my_pose.get_kp(frame)
+            #print(show[7])
+            
+            angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
+            angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
+            #if angle567:
+            #print(str(angle234)+' '+str(angle567)+' '+str(show[10][0]))
+            #else:
+            #  print('ooooops')
+            if show[2][0]:#值判断一个就好
+                cv2.circle(frame2, (show[2][0], show[2][1]), 10, (0, 0, 255), -1)
+            if show[3][0]:
+                cv2.circle(frame2, (show[3][0], show[3][1]), 10, (0, 0, 255), -1)
+            if show[4][0]:
+                cv2.circle(frame2, (show[4][0], show[4][1]), 10, (0, 0, 255), -1)
+            if show[5][0]:#值判断一个就好
+                cv2.circle(frame2, (show[5][0], show[5][1]), 10, (0, 0, 255), -1)
+            if show[6][0]:
+                cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
+            if show[7][0]:
+                cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
+            if show[1][0]:
+                cv2.circle(frame2, (show[1][0], show[1][1]), 35, (0, 0, 255), -1)
         
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
         fps.display(frame2)
@@ -171,3 +168,11 @@ if __name__=='__main__':
         if k == 27 : break
     video.release()
     cv2.destroyAllWindows()
+
+
+
+#读取摄像头测试
+if __name__=='__main__':
+    #profile.run("run()")
+    runtest()
+    
