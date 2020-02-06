@@ -35,7 +35,12 @@ mapcom.py
 
 # 现在的状态
 目前完成了第一个版本，实现了用键盘控制和身体姿态控制的目标，pygame的一个窗口还没设计，在细节的判断上需要优化，pid与容错
-
+![效果](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/nopose.jpg)
+![打开pose](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/pose.jpg)
+![调用没有pose](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/resultmain.png)
+![调用pose](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/resultmainpose.png)
+![cpu内存](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/cpuram.jpg)
+![显存](https://github.com/happyseayou/tello_the_force/blob/master/performcetest/gpu.jpg)
 
 # 存在问题
 pose调用摄像头进行检测的时候fps有20fps左右（i7 6700hq + gtx970m 3g+16gb ram+512gb nvme ssd）
