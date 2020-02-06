@@ -269,7 +269,8 @@ class UID():#显示类
         #hud.add(f"zero pitch {flightstate[22]:8.1f}")#四元数解算的旋转是与启动点为原点的，可用于定位
         #hud.add(f"zero roll {flightstate[23]:8.1f}")
         hud.add(f"zero yew {flightstate[24]:8.1f}")
-        hud.add(f"visualstate {flightstate[25]}")#6定位成功，1定位失败，11未知
+        hud.add(f"visualstate {flightstate[25]}")
+        #print(f"posx {flightstate[19]:8.1f},visualstate {flightstate[25]}")
         
         hud.draw(image)
         return image

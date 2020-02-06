@@ -8,7 +8,7 @@ import time
 from Tello import Tello
 from simple_pid import PID
 from UI import FPS,UID
-from math import atan2, degrees, sqrt,pi
+from math import atan2, degrees, sqrt,pi,atan
 from Pose import Pose
 from Com import*
 #import profile
@@ -53,12 +53,18 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
                 us[4]=1
                 isposetime=time.time() 
                 ispose=1
+                #screen = pygame.display.set_mode((640, 480), 0)
         else:
             if  time.time()-isposetime>2:
                 us[4]=0
                 isposetime=time.time()
                 ispose=0
-   
+                #screen = pygame.display.set_mode((640, 480), pygame.FULLSCREEN | pygame.HWSURFACE)
+    #全屏切换
+    if key_list[pygame.K_F11]:
+        screen = pygame.display.set_mode((640, 480), 0)
+    if key_list[pygame.K_F12]:
+        screen = pygame.display.set_mode((640, 480), pygame.FULLSCREEN | pygame.HWSURFACE)
     #特殊指令执行时通道指令无效且归零
     if key_list[pygame.K_0]:#0
         us[5]=2
@@ -116,6 +122,13 @@ def usec(key_list):#定义键盘跟踪，暂时没有封转到类
         us[0]=us[1]=us[2]=us[3]=0
     return us
 
+def pygdisplaycv2(imsurface):
+    #cv2.resize(imsurface,(w,h))
+    imsurface=cv2.cvtColor(imsurface, cv2.COLOR_BGR2RGB)
+    imsurface=numpy.rot90(imsurface,k=-1)
+    imsf=pygame.surfarray.make_surface(imsurface)
+    imsf = pygame.transform.flip(imsf, False, True)
+    return imsf
 
 
 
@@ -128,13 +141,28 @@ def main():
     pygame.mixer.init()
 
     if isdisplay==1:
-        screen = pygame.display.set_mode((640, 480), 0, 32)#键盘控制封不了类，只能用函数
+        screen = pygame.display.set_mode((640, 480), 0)#键盘控制封不了类，只能用函数
         pygame.display.set_caption('没卵用的窗口')
+        #不会动的界面
         background=pygame.image.load('media//uimain.png')
+        #俯仰滚
         roll=pygame.image.load('media//roll.png')
         rollrect=roll.get_rect()
-        heightp=pygame.image.load('media//heightpoint.png')
-        betp=pygame.image.load('media//bettarypoint.png')
+        #电池速度高度
+        heightp=pygame.image.load('media//h.png')
+        betp=pygame.image.load('media//battery.png')
+        velhp=pygame.image.load('media//velh.png')
+        velxyp=pygame.image.load('media//velxy.png')
+        #转盘
+        yawp=pygame.image.load('media//yawpoint.png')
+        yawprect=yawp.get_rect()
+        #飞行模式和灯
+        ready=pygame.image.load('media//ready.png')
+        pl=pygame.image.load('media//pl.png')
+        flying=pygame.image.load('media//visualfly.png')
+        greenlight=pygame.image.load('media//greenlight.png')
+        redlight=pygame.image.load('media//redlight.png')
+
     else:
         screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
         pygame.display.set_caption('没卵用的窗口')
@@ -144,7 +172,6 @@ def main():
     pose=Pose()
     com=Com()
 
-    
     frame_skip=300
     for frame in tello.container.decode(video=0):#一定要用这个循环来获取才不会产生delay
         if 0 < frame_skip:
@@ -155,6 +182,7 @@ def main():
         key_list = pygame.key.get_pressed()
         imageraw=image
         image = cv2.resize(image,(640,480))#这个太大会爆显存
+
         userc=usec(key_list)#来自用户输入的命令
         #userc[0                1 2 3 4   5         ]
             #是否使用openpose    四个通道  模式
@@ -169,12 +197,38 @@ def main():
         flightstate=com.get_state()#命令状态
         
         if isdisplay==1:
+            #背景和画面
+            imsf=pygdisplaycv2(image)
+            screen.blit(imsf,(0,0))
             screen.blit(background,(0,0))
-            newroll=pygame.transform.rotate(roll,-flightstate[15]*3)
+            #滚动俯
+            newroll=pygame.transform.rotate(roll,-(180/pi)*atan(flightstate[15]/5))#使用响应曲线放大
             newrect=newroll.get_rect(center=rollrect.center)
-            screen.blit(newroll,(newrect[0]+230,newrect[1]+60+flightstate[16]*10))
-            screen.blit(heightp,(64,416-flightstate[11]*13))
-            screen.blit(betp,(550,(100-flightstate[1])*4+45))
+            screen.blit(newroll,(newrect[0]+264,newrect[1]+129-(366/pi)*atan(flightstate[16]/5)))#使用响应曲线放大
+            #电池高度速度
+            screen.blit(heightp,(5,319-abs(flightstate[11]*12)))
+            screen.blit(betp,(575-(100-flightstate[1])*4,18))
+            screen.blit(velhp,(611,283+int(flightstate[18]*4)))
+            screen.blit(velxyp,(611,211-int(flightstate[17]*10)))
+            #盘
+            newyawp=pygame.transform.rotate(yawp,-flightstate[24])
+            newyawprect=newyawp.get_rect(center=yawprect.center)
+            screen.blit(newyawp,(newyawprect[0]+74,newyawprect[1]+368))#使用响应曲线放大
+            #飞行模式和灯
+            if flightstate[0]!=0:#飞行中
+                if flightstate[25]==6:
+                    screen.blit(flying,(13,10))
+                elif flightstate[25]==1:
+                    screen.blit(pl,(23,11))
+                #灯
+                screen.blit(greenlight,(601,6))
+            else:
+                if flightstate[25]==6:
+                    screen.blit(ready,(17,8))
+                elif flightstate[25]==1:
+                    screen.blit(pl,(23,11))
+                screen.blit(redlight,(601,6))
+
             pygame.display.update()
         else:
             screen.blit(background,(0,0))

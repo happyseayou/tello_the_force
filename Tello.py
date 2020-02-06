@@ -131,7 +131,7 @@ class Tello:
         #self.height=data.height
         self.height=data.height
         self.wifi=data.wifi_strength
-        self.visual_state=data.fly_mode
+        self.visual_state=data.fly_mode#起飞11，降落12，没有起飞：6静止可以起飞，1未静止不可起飞：飞行中：6视觉定位正常，1飘了
         #这个一个接受数据1的函数
 
     def log_data_handler(self, event, sender, data):
