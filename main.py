@@ -134,9 +134,9 @@ def pygdisplaycv2(imsurface):
 
 def main():
     isdisplay=1
-
-    tello=Tello()
     
+    tello=Tello()
+
     pygame.init()
     pygame.mixer.init()
 
@@ -173,85 +173,92 @@ def main():
     com=Com()
 
     frame_skip=300
-    for frame in tello.container.decode(video=0):#一定要用这个循环来获取才不会产生delay
-        if 0 < frame_skip:
-            frame_skip = frame_skip - 1
-            continue
-        start_time = time.time()
-        image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-        key_list = pygame.key.get_pressed()
-        imageraw=image
-        image = cv2.resize(image,(640,480))#这个太大会爆显存
+    try:
+        for frame in tello.container.decode(video=0):#一定要用这个循环来获取才不会产生delay
+            if 0 < frame_skip:
+                frame_skip = frame_skip - 1
+                continue
+            start_time = time.time()
+            image = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
+            key_list = pygame.key.get_pressed()
+            imageraw=image
+            image = cv2.resize(image,(640,480))#这个太大会爆显存
 
-        userc=usec(key_list)#来自用户输入的命令
-        #userc[0                1 2 3 4   5         ]
-            #是否使用openpose    四个通道  模式
-        if userc[4]==1:#判断使用跟踪
-            kp=pose.get_kp(image)
-        else:#不使用
-            kp=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-        comd=com.get_comd(kp,userc)#接受两个数组进行判断
-        tello.send_comd(comd)
-        flight=tello.send_data()#飞行数据
-        com.read_tello_data(flight)#飞控获取数据用于判断指令
-        flightstate=com.get_state()#命令状态
-        
-        if isdisplay==1:
-            #背景和画面
-            imsf=pygdisplaycv2(image)
-            screen.blit(imsf,(0,0))
-            screen.blit(background,(0,0))
-            #滚动俯
-            newroll=pygame.transform.rotate(roll,-(180/pi)*atan(flightstate[15]/5))#使用响应曲线放大
-            newrect=newroll.get_rect(center=rollrect.center)
-            screen.blit(newroll,(newrect[0]+264,newrect[1]+129-(366/pi)*atan(flightstate[16]/5)))#使用响应曲线放大
-            #电池高度速度
-            screen.blit(heightp,(5,319-abs(flightstate[11]*12)))
-            screen.blit(betp,(575-(100-flightstate[1])*4,18))
-            screen.blit(velhp,(611,283+int(flightstate[18]*4)))
-            screen.blit(velxyp,(611,211-int(flightstate[17]*10)))
-            #盘
-            newyawp=pygame.transform.rotate(yawp,-flightstate[24])
-            newyawprect=newyawp.get_rect(center=yawprect.center)
-            screen.blit(newyawp,(newyawprect[0]+74,newyawprect[1]+368))#使用响应曲线放大
-            #飞行模式和灯
-            if flightstate[0]!=0:#飞行中
-                if flightstate[25]==6:
-                    screen.blit(flying,(13,10))
-                elif flightstate[25]==1:
-                    screen.blit(pl,(23,11))
-                #灯
-                screen.blit(greenlight,(601,6))
+            userc=usec(key_list)#来自用户输入的命令
+            #userc[0                1 2 3 4   5         ]
+                #是否使用openpose    四个通道  模式
+            if userc[4]==1:#判断使用跟踪
+                kp=pose.get_kp(image)
+            else:#不使用
+                kp=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+            comd=com.get_comd(kp,userc)#接受两个数组进行判断
+            tello.send_comd(comd)
+            flight=tello.send_data()#飞行数据
+            com.read_tello_data(flight)#飞控获取数据用于判断指令
+            flightstate=com.get_state()#命令状态
+            
+            if isdisplay==1:
+                #背景和画面
+                imsf=pygdisplaycv2(image)
+                screen.blit(imsf,(0,0))
+                screen.blit(background,(0,0))
+                #滚动俯
+                newroll=pygame.transform.rotate(roll,-(180/pi)*atan(flightstate[15]/5))#使用响应曲线放大
+                newrect=newroll.get_rect(center=rollrect.center)
+                screen.blit(newroll,(newrect[0]+264,newrect[1]+129-(366/pi)*atan(flightstate[16]/5)))#使用响应曲线放大
+                #电池高度速度
+                screen.blit(heightp,(5,319-abs(flightstate[11]*12)))
+                screen.blit(betp,(575-(100-flightstate[1])*4,18))
+                screen.blit(velhp,(611,283+int(flightstate[18]*4)))
+                screen.blit(velxyp,(611,211-int(flightstate[17]*10)))
+                #盘
+                newyawp=pygame.transform.rotate(yawp,-flightstate[24])
+                newyawprect=newyawp.get_rect(center=yawprect.center)
+                screen.blit(newyawp,(newyawprect[0]+74,newyawprect[1]+368))#使用响应曲线放大
+                #飞行模式和灯
+                if flightstate[0]!=0:#飞行中
+                    if flightstate[25]==6:
+                        screen.blit(flying,(13,10))
+                    elif flightstate[25]==1:
+                        screen.blit(pl,(23,11))
+                    #灯
+                    screen.blit(greenlight,(601,6))
+                else:
+                    if flightstate[25]==6:
+                        screen.blit(ready,(17,8))
+                    elif flightstate[25]==1:
+                        screen.blit(pl,(23,11))
+                    screen.blit(redlight,(601,6))
+
+                pygame.display.update()
             else:
-                if flightstate[25]==6:
-                    screen.blit(ready,(17,8))
-                elif flightstate[25]==1:
-                    screen.blit(pl,(23,11))
-                screen.blit(redlight,(601,6))
+                screen.blit(background,(0,0))
+                pygame.display.update()
 
-            pygame.display.update()
-        else:
-            screen.blit(background,(0,0))
-            pygame.display.update()
+            
 
+            if userc[4]==1:#使用
+                ui.show(image,kp,flightstate)#显示并负责播放声音
+            else:#不用
+                ui.show(imageraw,0,flightstate)
+            
+            if frame.time_base < 1.0/60:
+                time_base = 1.0/60
+            else:
+                time_base = frame.time_base
+            frame_skip = int((time.time() - start_time)/time_base)
+            k = cv2.waitKey(1) & 0xff
+            if k == 27 : 
+                pygame.display.quit()
+                tello.drone.quit()#退出
+                break
         
+    except:
+        print('连接超时或发生错误退出辽')
 
-        if userc[4]==1:#使用
-            ui.show(image,kp,flightstate)#显示并负责播放声音
-        else:#不用
-            ui.show(imageraw,0,flightstate)
-        
-        if frame.time_base < 1.0/60:
-            time_base = 1.0/60
-        else:
-            time_base = frame.time_base
-        frame_skip = int((time.time() - start_time)/time_base)
-        k = cv2.waitKey(1) & 0xff
-        if k == 27 : 
-            pygame.display.quit()
-            tello.drone.quit()#退出
-            break
-    cv2.destroyAllWindows()
+    cv2.destroyAllWindows()#关掉飞机直接退出程序
+    tello.drone.quit()
+    pygame.display.quit()
     
 
 if __name__=='__main__':

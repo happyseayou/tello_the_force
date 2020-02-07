@@ -54,18 +54,21 @@ class Tello:
             self.drone.subscribe(self.drone.EVENT_FLIGHT_DATA,self.flight_data_handler)
             self.drone.subscribe(self.drone.EVENT_LOG_DATA,self.log_data_handler)
 
-            #self.drone.wait_for_connection(60.0)
-            #retry = 3
-            #self.container=None   #container用于存放帧
-            #while self.container is None and 0 < retry:
-                #retry-=1
-                #try:
-            self.container=av.open(self.drone.get_video_stream())
-                #except av.AVError as ave:
-                   # print(ave)
-                    #print('retry...')
+            
+            self.drone.wait_for_connection(5.0)
+            retry = 3
+            self.container=None   #container用于存放帧
+            while self.container is None and 0 < retry:
+                retry-=1
+                try:
+                    self.container=av.open(self.drone.get_video_stream())
+                except av.AVError as ave:
+                    print(ave)
+                    print('retry...')
         except:
-            print('ooooooooooooooo')
+            print('ooooooooooooooops')
+            self.drone.quit()
+            #pygame.display.quit()
         
         self.frame_skip=300
 
