@@ -60,6 +60,7 @@ class Pose:
             else: next_item = "1"
             if "--" in curr_item and "--" in next_item:
                 key = curr_item.replace('-','')
+                
                 if key not in params:  params[key] = "1"
             elif "--" in curr_item and "--" not in next_item:
                 key = curr_item.replace('-','')

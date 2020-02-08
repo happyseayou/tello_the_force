@@ -205,7 +205,7 @@ class Tello:
 
 if __name__=='__main__':
 
-    ispose=1
+    ispose=0
     fps=FPS()
     tello=Tello()
     if ispose==1:
