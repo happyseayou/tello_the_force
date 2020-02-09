@@ -9,6 +9,9 @@ import argparse
 from UI import FPS
 from math import atan2, degrees, sqrt,pi
 import numpy as np
+import time
+import gc
+from multiprocessing import Process, Manager
 #import profile
 
 
@@ -116,17 +119,45 @@ class Pose:
         return press
 
 
+def write(stack,imge) -> None:
+        top=20
+        stack.append(imge)
+        if len(stack) >= top:
+            del stack[:]
+            gc.collect()
 
+def read(stack) -> None:
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
+    out = cv2.VideoWriter('video_out'+str(time.time())+'.mp4',fourcc , 25, (640, 480))
+    while 1:
+        if len(stack) >= 10:
+            frame = stack.pop()
+            out.write(frame)
+            cv2.imshow("REC", frame)
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('c'):
+                break
+        else:
+            continue
+    out.release()
+    cv2.destroyAllWindows()
         
         
 def runtest():
     video=cv2.VideoCapture(0)
     ispose=1
+    isrec=1
     fps=FPS()
     if ispose:
         my_pose=Pose()
+    if isrec:
+        stack= Manager().list()
+        pr = Process(target=read, args=(stack,))
+        pr.start()
     while True:
+        start_time=time.time()
         ok,frame=video.read()
+        
         if not ok:
             break
         fps.update()
@@ -160,14 +191,21 @@ def runtest():
         
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
         fps.display(frame2)
+
+        if isrec:
+            write(stack,frame2)
+
         frame3=cv2.resize(frame2,(960,720))
         cv2.imshow("raw",frame3) 
+        
         #cv2.imshow("1",show[2])
         #print(show[0][0],show[0][1])
         #print('ok')
         k = cv2.waitKey(1) & 0xff
         if k == 27 : break
+        
     video.release()
+    #pr.terminate()
     cv2.destroyAllWindows()
 
 

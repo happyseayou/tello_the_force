@@ -457,7 +457,7 @@ class Com:
             elif self.flymode==1:#        1跟随模式，修正偏航和锁定距离
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
+                self.pid_pith=PID(0.4,0.005,0.5,setpoint=0,output_limits=(-50,50))
 
                 comd[0]=int(-self.pid_yaw(xoff))
                 comd[3]=int(self.pid_thro(yoff))
@@ -486,8 +486,8 @@ class Com:
             elif self.flymode==2:#        2平行跟随，修正roll和锁定距离
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
-                self.pid_roll= PID(0.2,0.005,0.2,setpoint=0,output_limits=(-30,30))
+                self.pid_pith=PID(0.4,0.005,0.5,setpoint=0,output_limits=(-50,50))
+                self.pid_roll= PID(0.2,0.005,0.5,setpoint=0,output_limits=(-30,30))
 
                 #comd[0]=int(self.pid_yaw(xoff))
                 comd[3]=int(self.pid_thro(yoff))

@@ -1,2 +1,2 @@
-python -m cProfile -o resultmainpose.out -s cumulative main.py  //性能分析, 分析结果保存到 result.out 文件；
+python -m cProfile -o result.out -s cumulative main.py  //性能分析, 分析结果保存到 result.out 文件；
 python gprof2dot.py -f pstats resultmainpose.out | dot -Tpng -o resultmainpose.png   //gprof2dot 将 result.out 转换为 dot 格式；再由 graphvix 转换为 png 图形格式。

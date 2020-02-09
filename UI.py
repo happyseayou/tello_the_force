@@ -4,6 +4,8 @@ import time
 import numpy
 import pygame
 from math import atan2, degrees, sqrt,pi,atan
+import csv
+
 
 class FPS: #这个模块摘自tello_openpose
     def __init__(self):
@@ -28,14 +30,18 @@ class FPS: #这个模块摘自tello_openpose
     def display(self, win, orig=(10,30), font=cv2.FONT_HERSHEY_PLAIN, size=2, color=(0,255,0), thickness=2):
         cv2.putText(win,f"FPS={self.get():.2f}",orig,font,size,color,thickness)
 
+
 class Pydisplay():
     def __init__(self):
         self.isdisplay=1
-
         pygame.init()
         pygame.mixer.init()
+        self.player=player()
+        self.preflightstate2=-1
+
         if self.isdisplay==1:
             self.screen = pygame.display.set_mode((640, 480), pygame.DOUBLEBUF)#键盘控制封不了类，只能用函数
+            #self.screen = pygame.display.set_mode((640, 480), 0)#键盘控制封不了类，只能用函数
             pygame.display.set_caption('没卵用的窗口')
             #不会动的界面
             self.background=pygame.image.load('media//uimain.png')
@@ -103,6 +109,10 @@ class Pydisplay():
                 elif flightstate[25]==1:
                     self.screen.blit(self.pl,(23,11))
                 self.screen.blit(self.redlight,(601,6))
+
+            if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
+                self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
+                self.preflightstate2=flightstate[2]
 
             pygame.display.update()
             #pygame.display.flip() 
@@ -239,10 +249,6 @@ class player():
         self.key_mode_18=pygame.mixer.Sound("playsounds\\左后空翻.wav")
         self.key_mode_19=pygame.mixer.Sound("playsounds\\右后空翻.wav")
         
-
-
-
-
     def sound(self,mode):
         if mode == 0:
             self.sound_mode_0.play()
@@ -291,32 +297,41 @@ class UID():#显示类
 
     def __init__(self):
         self.fps=FPS()
-        self.player=player()
-        self.preflightstate2=-1
-        #self.hubw=hubw()
+        
+        #PID记录
+        self.pidt=0
+        if self.pidt:
+            self.pidfile=open('pid.csv','w',encoding='utf-8',newline='')
+            self.pidfilewrite=csv.writer(self.pidfile)
+            self.pidfilewrite.writerow(["mode","lock","dis","x","y"])
 
     def show(self,image,kp,flightstate):
         if kp==0:#两种显示模式
             image=self.hubw(image,flightstate)
-            self.player.sound(flightstate[2])
+            #frame2=image
             self.fps.update()
             #cv2.imshow('tello',image)
         else:
             self.drawer(image,kp,flightstate)
+            #frame2=image
             image=cv2.resize(image,(960,720))
             image=self.hubw(image,flightstate)
-            if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
-                self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
-                self.preflightstate2=flightstate[2]
             self.fps.update()
+            #PID调节文件
+            if self.pidt:
+                self.pidfilewrite.writerow([flightstate[2],flightstate[8],flightstate[9],flightstate[13],flightstate[14]])
         cv2.imshow('tello',image)
+        
+        return image
+        #self.write(self.stack,frame2)
+        
 
 
     def drawer(self,image,kp,flightstate):
         #画点
-        for i in [0,1,2,3,4,5,6,7,8,17,18]:
-            if kp[i][0] and kp[i][1]:
-                cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
+        #for i in [0,1,2,3,4,5,6,7,8,17,18]:
+            #if kp[i][0] and kp[i][1]:
+                #cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
         #画线
         color=(0,255,0)
         thickness = 3
@@ -339,6 +354,8 @@ class UID():#显示类
             cv2.arrowedLine(image, (x11,y11), (x22,y22), (0,0,255),5,8,0,0.1)
             cv2.circle(image, (x11,y11), 7, (0, 255, 255), -1)
             cv2.circle(image, (x22,y22), 7, (255, 0, 255), -1)
+        
+
 
     def hubw(self,image,flightstate):
         #这里摘自tello_openpose

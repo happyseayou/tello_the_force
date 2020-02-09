@@ -47,7 +47,7 @@ class Tello:
         try:
             self.drone.set_loglevel(2)
             self.drone.connect()
-            self.drone.set_video_encoder_rate(2)
+            self.drone.set_video_encoder_rate(1)#2=1.6Mbps,1=1.1Mbps,3=2.1Mbps,4=3.2Mbps,5=4.2Mbps
             self.drone.start_video()
 
             #订阅飞行数据信息
