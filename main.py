@@ -15,33 +15,25 @@ from Com import*
 import gc
 from multiprocessing import Process, Pipe
 
-def write(sd,imge) -> None:
+def write(sd,imge) -> None:#用管道效率比缓冲区高
+    try:
         sd.send(imge)
-        # top=20
-        # stack.append(imge)
-        # if len(stack) >= top:
-        #     del stack[:]
-        #     gc.collect()
+    except:
+        sd.close()
 
 def read(stack) -> None:
     fourcc = cv2.VideoWriter_fourcc(*'avc1')
     out = cv2.VideoWriter('video_out.mp4',fourcc , 25, (960, 720))
     while 1:
-        frame=stack.recv()
-        out.write(frame)
-        cv2.imshow("REC", frame)
-        cv2.waitKey(1)#与pygame的键盘存在未知冲突
-        # if len(stack) >= 10:
-        #     frame = stack.pop()
-        #     out.write(frame)
-        #     cv2.imshow("REC", frame)
-        #     key = cv2.waitKey(1) & 0xFF#与pygame的键盘存在未知冲突
-        #     if key == ord('c'):
-        #         break
-        # else:
-        #     continue
+        try:
+            frame=stack.recv()
+            out.write(frame)
+            cv2.imshow("REC", frame)
+            cv2.waitKey(1)#与pygame的键盘存在未知冲突
+        except:
+            break
     out.release()
-    #stack.close()
+    stack.close()
     cv2.destroyAllWindows()
 
 def main():
@@ -95,7 +87,7 @@ def main():
 
             #目前对丢帧策略的理解，只要分母不要小于飞机发送回来的最大帧速率则不会产生延迟同时保证帧率
             #例子里的60是不合理的，会多丢弃一半的帧，浪费辽
-            if frame.time_base < 1.0/31:
+            if frame.time_base < 1.0/32:
                 if userc[4]==1:
                     time_base = 1.0/31#使用pose稍微保守一点
                 else:

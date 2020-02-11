@@ -25,28 +25,30 @@ class player():
         self.sound_mode_7 = pygame.mixer.Sound("playsounds\\起飞.wav")
 
     def sound(self,mode):
-        if mode == 0:
-            self.sound_mode_0.play()
-        elif mode == 1:
-            self.sound_mode_1.play()
-        elif mode == 2:
-            self.sound_mode_2.play()
-        elif mode == 3:
-            self.sound_mode_3.play()
-        elif mode == 4:
-            self.sound_mode_4.play()
-        elif mode == 5:
-            self.sound_mode_5.play()
-        elif mode == 6:
-            self.sound_mode_6.play()
-        elif mode == 7:
-            self.sound_mode_7.play()
+        if pygame.mixer.get_busy()==False:
+            if mode == 0:
+                self.sound_mode_0.play()
+            elif mode == 1:
+                self.sound_mode_1.play()
+            elif mode == 2:
+                self.sound_mode_2.play()
+            elif mode == 3:
+                self.sound_mode_3.play()
+            elif mode == 4:
+                self.sound_mode_4.play()
+            elif mode == 5:
+                self.sound_mode_5.play()
+            elif mode == 6:
+                self.sound_mode_6.play()
+            elif mode == 7:
+                self.sound_mode_7.play()
             
         
 
 
 pygame.init()
 pygame.mixer.init()
+
 screen = pygame.display.set_mode((640, 480), 0, 32)
 video=cv2.VideoCapture(0)
 flag=0

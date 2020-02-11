@@ -42,7 +42,10 @@ class Pydisplay():
         if self.isdisplay==1:
             self.screen = pygame.display.set_mode((640, 480), pygame.DOUBLEBUF)#键盘控制封不了类，只能用函数
             #self.screen = pygame.display.set_mode((640, 480), 0)#键盘控制封不了类，只能用函数
+
             pygame.display.set_caption('没卵用的窗口')
+            icon=pygame.image.load('media//icon.png')
+            pygame.display.set_icon(icon)
             #不会动的界面
             self.background=pygame.image.load('media//uimain.png')
             #俯仰滚
@@ -62,6 +65,8 @@ class Pydisplay():
             self.flying=pygame.image.load('media//visualfly.png')
             self.greenlight=pygame.image.load('media//greenlight.png')
             self.redlight=pygame.image.load('media//redlight.png')
+            #文本信息
+            self.text=pygame.font.Font('media//SIMYOU.TTF',18)
 
         else:
             self.screen = pygame.display.set_mode((320, 240), 0, 32)#键盘控制封不了类，只能用函数
@@ -85,12 +90,12 @@ class Pydisplay():
             #滚动俯
             newroll=pygame.transform.rotate(self.roll,-(180/pi)*atan(flightstate[15]/5))#使用响应曲线放大
             newrect=newroll.get_rect(center=self.rollrect.center)
-            self.screen.blit(newroll,(newrect[0]+264,newrect[1]+129-(366/pi)*atan(flightstate[16]/5)))#使用响应曲线放大
+            self.screen.blit(newroll,(newrect[0]+168,newrect[1]+115-(366/pi)*atan(flightstate[16]/5)))#使用响应曲线放大
             #电池高度速度
             self.screen.blit(self.heightp,(5,319-abs(flightstate[11]*11)))
             self.screen.blit(self.betp,(575-(100-flightstate[1])*4,18))
             self.screen.blit(self.velhp,(611,283+int(flightstate[18]*4)))
-            self.screen.blit(self.velxyp,(611,211-int(flightstate[17]*10)))
+            self.screen.blit(self.velxyp,(611,211-int(flightstate[17]*8)))
             #盘
             newyawp=pygame.transform.rotate(self.yawp,-flightstate[24])
             newyawprect=newyawp.get_rect(center=self.yawprect.center)
@@ -113,6 +118,20 @@ class Pydisplay():
             if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
                 self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
                 self.preflightstate2=flightstate[2]
+            #文本信息
+            textinfo1="电池："+str(format(flightstate[1],'.1f'))
+            textinfo2="高度："+str(format(flightstate[11],'.1f'))
+            textinfo3="水平速度："+str(format(flightstate[17],'.1f'))
+            textinfo4="垂直速度:"+str(format(flightstate[18],'.1f'))
+            text_surf1=self.text.render(textinfo1,1,(0,0,0))
+            text_surf2=self.text.render(textinfo2,1,(0,0,0))
+            text_surf3=self.text.render(textinfo3,1,(0,0,0))
+            text_surf4=self.text.render(textinfo4,1,(0,0,0))
+            self.screen.blit(text_surf1,(460,368))
+            self.screen.blit(text_surf2,(460,391))
+            self.screen.blit(text_surf3,(460,414))
+            self.screen.blit(text_surf4,(460,437))
+
 
             pygame.display.update()
             #pygame.display.flip() 
@@ -129,24 +148,49 @@ class Keyuser():
 
     def usec(self,key_list):#定义键盘跟踪，暂时没有封转到类
         speed=50
+        speedhight=100
         for i in [0,1,2,3,5]:
             self.us[i]=0
         if key_list[pygame.K_w]:#W 前进
-            self.us[1]=speed
+            if key_list[pygame.K_SPACE]:
+                self.us[1]=speedhight
+            else:
+                self.us[1]=speed
         if key_list[pygame.K_s]:#s后退
-            self.us[1]=-speed
+            if key_list[pygame.K_SPACE]:
+                self.us[1]=-speedhight
+            else:
+                self.us[1]=-speed
         if key_list[pygame.K_q]:#q
-            self.us[2]=-speed
+            if key_list[pygame.K_SPACE]:
+                self.us[2]=-speedhight
+            else:
+                self.us[2]=-speed
         if key_list[pygame.K_e]:#e
-            self.us[2]=speed
+            if key_list[pygame.K_SPACE]:
+                self.us[2]=speedhight
+            else:
+                self.us[2]=speed
         if key_list[pygame.K_a]:#a
-            self.us[3]=-speed
+            if key_list[pygame.K_SPACE]:
+                self.us[3]=-speedhight
+            else:
+                self.us[3]=-speed
         if key_list[pygame.K_d]:#d
-            self.us[3]=speed
+            if key_list[pygame.K_SPACE]:
+                self.us[3]=speedhight
+            else:
+                self.us[3]=speed
         if key_list[pygame.K_LSHIFT]:#shitf
-            self.us[0]=speed
+            if key_list[pygame.K_SPACE]:
+                self.us[0]=speedhight
+            else:
+                self.us[0]=speed
         if key_list[pygame.K_LCTRL]:#ctrl
-            self.us[0]=-speed
+            if key_list[pygame.K_SPACE]:
+                self.us[0]=-speedhight
+            else:
+                self.us[0]=-speed
         #ispose
         if key_list[pygame.K_t]:
             if self.ispose !=1:
@@ -250,6 +294,7 @@ class player():
         self.key_mode_19=pygame.mixer.Sound("playsounds\\右后空翻.wav")
         
     def sound(self,mode):
+        #if pygame.mixer.get_busy()==False:
         if mode == 0:
             self.sound_mode_0.play()
         elif mode == 1:
