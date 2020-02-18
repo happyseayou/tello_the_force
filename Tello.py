@@ -142,9 +142,9 @@ class Tello:
             Listener to log data from the drone.
         """  
         #mvo单目视觉里程计
-        self.pos_x = data.mvo.pos_x*10
-        self.pos_y = data.mvo.pos_y*10
-        self.pos_z = data.mvo.pos_z*10
+        self.pos_x = data.mvo.pos_x*100#厘米
+        self.pos_y = data.mvo.pos_y*100
+        self.pos_z = data.mvo.pos_z*100
         
         #imu惯性测量单元
         self.acc_x = 100*data.imu.acc_x#用于计算roll和pitch的角度
@@ -177,9 +177,7 @@ class Tello:
         velz=self.vel_z #垂直速度
         velxy=sqrt(self.vel_x**2+self.vel_y**2)      #水平速度
         #imu惯性测量单元
-        #用重力加速度算俯仰角与翻滚角   
-        anglerroll=degrees(atan(self.acc_y/self.acc_z))
-        anglerpitch=degrees(atan(self.acc_x/self.acc_z))
+        
         #用四元数算
         q0=self.q0
         q1=self.q1
@@ -192,8 +190,15 @@ class Tello:
         roll=degrees(atan2(2*q0*q1+2*q3*q2,1-2*q1**2-2*q2**2))
         yew= degrees(atan2(2*q1*q2+2*q0*q3,1-2*q2**2-2*q3**2))
 
+        # #用重力加速度算俯仰角与翻滚角   
+        # anglerroll=degrees(atan(self.acc_y/self.acc_z))
+        # anglerpitch=degrees(atan(self.acc_x/self.acc_z))
+        anglerroll=roll
+        anglerpitch=-pitch
+
         visual_state=self.visual_state
         return bat,is_fly,tftimer,height,wifi,anglerroll,anglerpitch,velz,velxy,posx,posy,posz,pitch,roll,yew,visual_state
+        #       0    1       2       3     4    5            6         7   8      9   10   11    12    13   14    15           
     
     
   

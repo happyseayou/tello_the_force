@@ -1,5 +1,5 @@
 #根据op的身体节点坐标，根据决策树，返回命令
-from math import atan2, degrees, sqrt,pi
+from math import atan2, degrees, sqrt,pi,fabs
 from simple_pid import PID
 import time 
 
@@ -457,7 +457,7 @@ class Com:
             elif self.flymode==1:#        1跟随模式，修正偏航和锁定距离
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                self.pid_pith=PID(0.4,0.005,0.5,setpoint=0,output_limits=(-50,50))
+                self.pid_pith=PID(0.4,0.04,0.4,setpoint=0,output_limits=(-50,50))
 
                 comd[0]=int(-self.pid_yaw(xoff))
                 comd[3]=int(self.pid_thro(yoff))
@@ -486,8 +486,8 @@ class Com:
             elif self.flymode==2:#        2平行跟随，修正roll和锁定距离
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                self.pid_pith=PID(0.4,0.005,0.5,setpoint=0,output_limits=(-50,50))
-                self.pid_roll= PID(0.2,0.005,0.5,setpoint=0,output_limits=(-30,30))
+                self.pid_pith=PID(0.3,0.01,0.3,setpoint=0,output_limits=(-50,50))
+                self.pid_roll= PID(0.2,0.005,0.2,setpoint=0,output_limits=(-30,30))
 
                 #comd[0]=int(self.pid_yaw(xoff))
                 comd[3]=int(self.pid_thro(yoff))
@@ -533,7 +533,7 @@ class Com:
             elif self.flymode==5: #        5靠近降落在手掌，所有参数清零
                 self.pid_yaw=PID(0.25,0,0,setpoint=0,output_limits=(-100,100))
                 self.pid_thro=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-50,50))
-                self.pid_pith=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-20,20))
+                self.pid_pith=PID(0.3,0.005,0.1,setpoint=0,output_limits=(-30,30))
                 self.lock_distance_sd=290     #最近肩宽   
                 if self.palmflag is None:
                     comd[0]=int(-self.pid_yaw(xoff))
@@ -639,11 +639,16 @@ class Com:
         self.anglerpitch=data[6]
         self.velxy=data[8]
         self.velz=data[7]
-        self.posx=data[9]
-        self.posy=data[10]
-        self.posz=data[11]
+        #向上z正方向，向前y正方向，向右x正方向
+        self.posx=data[10]
+        self.posy=data[9]
+        self.posz=-data[11]
         self.pitch=data[12]
         self.roll=data[13]
         self.yew=data[14]
         self.visualstate=data[15]
+        if self.isfly:
+            if fabs(data[9])<=2 and fabs(data[10])<=2 and fabs(data[11])<=2:
+                self.visualstate=1#当三个值同时为这个范围时说明飘了
+                #1.6  1.1  0.5
 

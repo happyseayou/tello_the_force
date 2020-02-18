@@ -5,6 +5,8 @@ import numpy
 import pygame
 from math import atan2, degrees, sqrt,pi,atan
 import csv
+import random
+import pandas as pd 
 
 
 class FPS: #这个模块摘自tello_openpose
@@ -144,6 +146,9 @@ class Keyuser():
     def __init__(self):
         self.ispose=0
         self.isposetime=time.time()
+        self.ismap=0
+        self.ismaptime=time.time()
+        self.ismapause=0
         self.us=[0,0,0,0,0,0]
 
     def usec(self,key_list):#定义键盘跟踪，暂时没有封转到类
@@ -204,6 +209,31 @@ class Keyuser():
                     self.ispose=0
                     self.us[4]=self.ispose
                     self.isposetime=time.time()
+        #map模式
+        if key_list[pygame.K_m]:
+            if self.ismap !=2:
+                if time.time()-self.ismaptime>2:
+                    self.ismap=2
+                    self.us[4]=self.ismap
+                    self.ismaptime=time.time() 
+                    
+            else:
+                if  time.time()-self.ismaptime>2:
+                    self.ismap=0
+                    self.us[4]=self.ismap
+                    self.ismaptime=time.time()
+        if key_list[pygame.K_b] and self.ismap==2:#暂停键
+            if self.ismapause !=3:
+                if time.time()-self.ismaptime>2:
+                    self.ismapause=3
+                    self.us[4]=self.ismapause
+                    self.ismaptime=time.time() 
+                    
+            else:
+                if  time.time()-self.ismaptime>2:
+                    self.ismapause=0
+                    self.us[4]=2
+                    self.ismaptime=time.time()
         #全屏切换
         if key_list[pygame.K_F11]:
             pygame.display.set_mode((640, 480), pygame.DOUBLEBUF)
@@ -229,8 +259,8 @@ class Keyuser():
             self.us[5]=4
             self.us[0]=self.us[1]=self.us[2]=self.us[3]=0
 
-        elif key_list[pygame.K_SPACE]:#space紧急停机
-            pass
+        # elif key_list[pygame.K_SPACE]:#space紧急停机
+        #     pass
             #四个通道刷为0
             #[0  1  2  3   4         5]
             #四个通道   ispose    模式
@@ -292,6 +322,15 @@ class player():
         self.key_mode_17=pygame.mixer.Sound("playsounds\\右前空翻.wav")
         self.key_mode_18=pygame.mixer.Sound("playsounds\\左后空翻.wav")
         self.key_mode_19=pygame.mixer.Sound("playsounds\\右后空翻.wav")
+        #map
+        self.key_mode_20=pygame.mixer.Sound("playsounds\\开始执行航点任务.wav")
+        self.key_mode_21=pygame.mixer.Sound("playsounds\\悬停.wav")
+        self.key_mode_22=pygame.mixer.Sound("playsounds\\飞往下一个航点.wav")
+        self.key_mode_23=pygame.mixer.Sound("playsounds\\自主返航.wav")
+        self.key_mode_24=pygame.mixer.Sound("playsounds\\降落.wav")
+        self.key_mode_25=pygame.mixer.Sound("playsounds\\退出航点模式.wav")
+        self.key_mode_26=pygame.mixer.Sound("playsounds\\等待开始.wav")
+        self.key_mode_27=pygame.mixer.Sound("playsounds\\暂停任务.wav")
         
     def sound(self,mode):
         #if pygame.mixer.get_busy()==False:
@@ -336,6 +375,22 @@ class player():
             self.key_mode_18.play()
         elif mode == 19:
             self.key_mode_19.play()
+        elif mode == 20:
+            self.key_mode_20.play()
+        elif mode == 21:
+            self.key_mode_21.play()
+        elif mode == 22:
+            self.key_mode_22.play()
+        elif mode == 23:
+            self.key_mode_23.play()
+        elif mode == 24:
+            self.key_mode_24.play()
+        elif mode == 25:
+            self.key_mode_25.play()
+        elif mode == 26:
+            self.key_mode_26.play()
+        elif mode == 27:
+            self.key_mode_27.play()
         
 
 class UID():#显示类
@@ -370,8 +425,6 @@ class UID():#显示类
         return image
         #self.write(self.stack,frame2)
         
-
-
     def drawer(self,image,kp,flightstate):
         #画点
         #for i in [0,1,2,3,4,5,6,7,8,17,18]:
@@ -400,8 +453,6 @@ class UID():#显示类
             cv2.circle(image, (x11,y11), 7, (0, 255, 255), -1)
             cv2.circle(image, (x22,y22), 7, (255, 0, 255), -1)
         
-
-
     def hubw(self,image,flightstate):
         #这里摘自tello_openpose
         class HUD: 
@@ -513,11 +564,143 @@ class UID():#显示类
         hud.add(f"posx {flightstate[19]:8.1f}")
         hud.add(f"posy {flightstate[20]:8.1f}")
         hud.add(f"posz {flightstate[21]:8.1f}")
-        #hud.add(f"zero pitch {flightstate[22]:8.1f}")#四元数解算的旋转是与启动点为原点的，可用于定位
-        #hud.add(f"zero roll {flightstate[23]:8.1f}")
+        hud.add(f"zero pitch {flightstate[22]:8.1f}")#四元数解算的旋转是与启动点为原点的，可用于定位
+        hud.add(f"zero roll {flightstate[23]:8.1f}")
         hud.add(f"zero yew {flightstate[24]:8.1f}")
         hud.add(f"visualstate {flightstate[25]}")
         #print(f"posx {flightstate[19]:8.1f},visualstate {flightstate[25]}")
         
         hud.draw(image)
         return image
+
+
+class Mapui:
+    def __init__(self):
+        img=cv2.imread('./map/map_.jpg')#1600*900
+        self.imgraw=cv2.resize(img,(1280,720))
+        self.flightstate=None 
+        data=pd.read_csv("./map/mapdraw_.csv",usecols=[0,1,2,3])
+        ls=data.values.tolist()
+        self.lsdrawe=ls
+        self.lspoint=[]
+        self.fps=FPS()
+
+    def mapshow(self,flightstate):
+        img=self.imgraw.copy()#每一帧都是新的
+        img=self.drawmap(img,flightstate)
+        self.fps.update()
+        cv2.imshow('tello',img)
+
+    def drawmap(self,img,flightstate):
+        img=self.hubw(img,flightstate)#先写一堆信息
+        #把坐标转成画图的坐标
+        Scalexy=600/821
+        x0=int(self.lsdrawe[0][1]*1280/1600)
+        y0=int(self.lsdrawe[0][2]*720/900)
+        x=int(flightstate[19]/Scalexy+x0)
+        y=int(-flightstate[20]/Scalexy+y0)#图片坐标和飞行坐标差一个-号
+        #把飞机画上地图
+        if len(self.lspoint)>=100:
+            self.lspoint.pop(0)
+        self.lspoint.append([x,y])
+        for item in self.lspoint:
+            coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+            cv2.circle(img,(item[0],item[1]),5,coloris,-1)
+        return img
+
+
+    def hubw(self,image,flightstate):
+        #这里摘自tello_openpose
+        class HUD: 
+            def __init__(self, def_color=(255, 170, 0)):
+                self.def_color = def_color
+                self.infos = []
+            def add(self, info, color=None):
+                if color is None: color = self.def_color
+                self.infos.append((info, color))
+            def draw(self, frame):
+                i=0
+                for (info, color) in self.infos:
+                    cv2.putText(frame, info, (0, 30 + (i * 30)),cv2.FONT_HERSHEY_SIMPLEX,1.0, color, 2) #lineType=30)
+                    i+=1
+
+        hud=HUD()
+
+        #self.state=[0,0,0,0,0,0,0,0,0,0]
+        #是否飞行 电池 飞行模式  动作指令  油门 俯仰 副翼 偏航 锁定距离 实时距离
+        #hud.add(datetime.datetime.now().strftime('%H:%M:%S'))
+        if self.fps.get():
+            hud.add(f"FPS {self.fps.get():.2f}")
+        if flightstate[0]!=0:
+            hud.add("flying", (0,255,0))
+        else:
+            hud.add("nofly", (0,255,0))
+        if flightstate[1]<20:
+            hud.add(f"bat {flightstate[1]}% battary low",(0,0,255))#低电量
+        else:
+            hud.add(f"bat {flightstate[1]}%")
+        
+        #nowdo[op,v1,v2,v3]
+        #op=0 takeoff
+        #op=1 holdonop
+        #op=2 goop
+        #op=3 backhome
+        #op=4 land
+        #if flightstate[2]:
+        if flightstate[2]==20:
+            hud.add("op:takeoff ", (0,255,0))
+        elif flightstate[2]==21:
+            hud.add("op:holdon", (0,255,0))
+        elif flightstate[2]==22:
+            hud.add("op:go", (0,255,0))
+            
+        elif flightstate[2]==23:
+            hud.add("op:gohome", (0,255,0))
+        elif flightstate[2]==24:
+            hud.add("op:land", (0,255,0))
+        elif flightstate[2]==25:
+            hud.add("out", (0,255,0))
+        elif flightstate[2]==26:
+            hud.add("wait to go", (0,255,0))
+        elif flightstate[2]==27:
+            hud.add("pause ing", (0,255,0))
+        #elif flightstate[2]==28:
+            
+        
+        #index
+        #if flightstate[3]:
+        hud.add(f"opindex {flightstate[3]}")
+        #舵量
+        hud.add(f"thr {flightstate[4]}")
+        hud.add(f"pith {flightstate[5]}")
+        hud.add(f"roll {flightstate[6]}")
+        hud.add(f"yaw {flightstate[7]}")
+        #姿态位置误差
+        #if flightstate[8] and flightstate[9] and flightstate[10] and flightstate[13]:
+        hud.add(f"offdistanc {flightstate[8]:8.1f}")
+        hud.add(f"offheight {flightstate[9]:8.1f}")
+        hud.add(f"offpoint {flightstate[10]:8.1f}")
+        hud.add(f"offroll {flightstate[13]:8.1f}")
+        hud.add(f"velxy {flightstate[17]:8.1f}")
+        hud.add(f"velz {flightstate[18]:8.1f}")
+        hud.add(f"wifi {flightstate[12]:8.1f}")
+        #if flightstate[19] and flightstate[20] and flightstate[21] and flightstate[24]:
+        hud.add(f"posx {flightstate[19]:8.1f}")
+        hud.add(f"posy {flightstate[20]:8.1f}")
+        hud.add(f"posz {flightstate[21]:8.1f}")
+        hud.add(f"pointyaw {flightstate[24]:8.1f}")
+        hud.add(f"visualstate {flightstate[25]}")
+        #if flightstate[14]:
+        if flightstate[14]==0:
+            hud.add("visualstate wait")
+        elif flightstate[14]==3:
+            hud.add("visualstate pause")
+        elif flightstate[14]==2:
+            hud.add("visualstate doing")
+        #print(f"posx {flightstate[19]:8.1f},visualstate {flightstate[25]}")
+        
+        hud.draw(image)
+        return image
+
+
+    

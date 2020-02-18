@@ -13,7 +13,7 @@ import time
 import gc
 from multiprocessing import Process, Manager
 #import profile
-
+import random
 
 
 #导入openpos库
@@ -85,7 +85,7 @@ class Pose:
         brightness=self.framebightness(frame)
         try:
             kps = self.datum.poseKeypoints[0]
-            listid=[0,1,2,3,4,5,6,7,8,10,17,18]#body_25模型关键点,10为亮度
+            listid=[0,1,2,3,4,5,6,7,8,10,15,16,17,18]#body_25模型关键点,10为亮度
                 #
            
             for i in listid:
@@ -146,7 +146,7 @@ def read(stack) -> None:
 def runtest():
     video=cv2.VideoCapture(0)
     ispose=1
-    isrec=1
+    isrec=0
     fps=FPS()
     if ispose:
         my_pose=Pose()
@@ -154,6 +154,7 @@ def runtest():
         stack= Manager().list()
         pr = Process(target=read, args=(stack,))
         pr.start()
+    lspoint=[]
     while True:
         start_time=time.time()
         ok,frame=video.read()
@@ -186,12 +187,27 @@ def runtest():
                 cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
             if show[7][0]:
                 cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
-            if show[1][0]:
-                cv2.circle(frame2, (show[1][0], show[1][1]), 35, (0, 0, 255), -1)
-        
+            if show[15][0] and show[15][1]:
+                #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
+                if len(lspoint)>=30:
+                    lspoint.pop(0)
+                lspoint.append([show[15][0],show[15][1]])
+                for item in lspoint:
+                    coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                    #coloris=(255,255,255)
+                    cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
+            if show[16][0] and show[16][1]:
+                #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
+                if len(lspoint)>=30:
+                    lspoint.pop(0)
+                lspoint.append([show[16][0],show[16][1]])
+                for item in lspoint:
+                    coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                    #coloris=(255,255,255)
+                    cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
         fps.display(frame2)
-
+    
         if isrec:
             write(stack,frame2)
 
