@@ -633,7 +633,7 @@ class Mapui:
         self.lspoint=[]
         self.fps=FPS()
         #PID记录
-        self.pidt=1
+        self.pidt=0
         if self.pidt:
             self.yawpid=RollingGraph(window_name="yawpid",thickness=[1], threshold=125,waitKey=False)
             self.thropid=RollingGraph(window_name="thropid",thickness=[1], threshold=125,waitKey=False)
