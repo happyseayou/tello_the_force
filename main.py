@@ -13,6 +13,7 @@ from Pose import Pose
 from Com import*
 from Mapcom import Mapcom
 #import profile
+import numpy as np
 import gc
 from multiprocessing import Process, Pipe
 
@@ -36,18 +37,77 @@ def read(stack) -> None:
     out.release()
     stack.close()
     cv2.destroyAllWindows()
+def nothing(x):
+    pass
+
+# def mapread(mapstack) -> None:
+#     mapui=Mapui()
+#     while 1:
+#         try:
+#             flightstate=mapstack.recv()
+#             mapui.mapshow(flightstate)
+#         except:
+#             break
+#     mapstack.close()
+#     cv2.destroyAllWindows()
+
+# def mapsand(mapsd,flightstate) -> None:
+#     try:
+#         mapsd.send(flightstate)
+#     except:
+#         mapsd.close()
 
 def main():
     isrec=0
+    muitmap=0
     tello=Tello()
     pydisplay=Pydisplay()
     keyuser=Keyuser()#键盘命令
     ui=UID()
     mapui=Mapui()
+    # if muitmap==0:
+    #     mapui=Mapui()
+    # else:
+    #     mapstack,mapsd = Pipe()
+    #     #stack= Manager().list()
+    #     mapshowing = Process(target=mapread, args=(mapstack,))
+    #     mapshowing.start()
     pose=Pose()
     com=Com()
     mapcom=Mapcom()
     frame_skip=300
+    #pidtuning
+    if mapcom.tpid==1:
+        pidimg=np.zeros((500, 512, 3), np.uint8)
+        cv2.namedWindow('pidyaw')
+        cv2.namedWindow('pidthro')
+        cv2.namedWindow('pidpith')
+        cv2.namedWindow('pidroll')
+
+        cv2.createTrackbar('p', 'pidyaw', 0, 100, nothing)
+        cv2.createTrackbar('i', 'pidyaw', 0, 100, nothing)
+        cv2.createTrackbar('d', 'pidyaw', 0, 100, nothing)
+        cv2.createTrackbar('down', 'pidyaw', 0, 100, nothing)
+        cv2.createTrackbar('up', 'pidyaw', 0,100, nothing)
+
+        cv2.createTrackbar('p', 'pidthro', 0, 100, nothing)
+        cv2.createTrackbar('i', 'pidthro', 0, 100, nothing)
+        cv2.createTrackbar('d', 'pidthro', 0, 100, nothing)
+        cv2.createTrackbar('down', 'pidthro', 0, 100, nothing)
+        cv2.createTrackbar('up', 'pidthro', 0,100, nothing)
+
+        cv2.createTrackbar('p', 'pidpith', 0, 100, nothing)
+        cv2.createTrackbar('i', 'pidpith', 0, 100, nothing)
+        cv2.createTrackbar('d', 'pidpith', 0, 100, nothing)
+        cv2.createTrackbar('down', 'pidpith', 0, 100, nothing)
+        cv2.createTrackbar('up', 'pidpith', 0,100, nothing)
+
+        cv2.createTrackbar('p', 'pidroll', 0, 100, nothing)
+        cv2.createTrackbar('i', 'pidroll', 0, 100, nothing)
+        cv2.createTrackbar('d', 'pidroll', 0, 100, nothing)
+        cv2.createTrackbar('down', 'pidroll', 0, 100, nothing)
+        cv2.createTrackbar('up', 'pidroll',  0,100, nothing)
+
     #录像功能
     if isrec:
         stack,sd= Pipe()
@@ -90,9 +150,21 @@ def main():
         #print(userc[4])
 
         elif userc[4]==2 or userc[4]==3:
+            if mapcom.tpid==1:
+                cv2.imshow('pidyaw', pidimg)
+                cv2.imshow('pidthro', pidimg)
+                cv2.imshow('pidpith', pidimg)
+                cv2.imshow('pidroll', pidimg)
+                pid=[[cv2.getTrackbarPos('p', 'pidyaw')/10,cv2.getTrackbarPos('i', 'pidyaw')/100,cv2.getTrackbarPos('d', 'pidyaw')/10,-cv2.getTrackbarPos('down', 'pidyaw'),cv2.getTrackbarPos('up', 'pidyaw')],
+                    [cv2.getTrackbarPos('p', 'pidthro')/10,cv2.getTrackbarPos('i', 'pidthro')/100,cv2.getTrackbarPos('d', 'pidthro')/10,-cv2.getTrackbarPos('down', 'pidthro'),cv2.getTrackbarPos('up', 'pidthro')],
+                    [cv2.getTrackbarPos('p', 'pidpith')/10,cv2.getTrackbarPos('i', 'pidpith')/100,cv2.getTrackbarPos('d', 'pidpith')/10,-cv2.getTrackbarPos('down', 'pidpith'),cv2.getTrackbarPos('up', 'pidpith')],
+                    [cv2.getTrackbarPos('p', 'pidroll')/10,cv2.getTrackbarPos('i', 'pidroll')/100,cv2.getTrackbarPos('d', 'pidroll')/10,-cv2.getTrackbarPos('down', 'pidroll'),cv2.getTrackbarPos('up', 'pidroll')]]
             data=tello.send_data()
             mapcom.readflightdata(data)
-            comd=mapcom.com(userc)
+            if mapcom.tpid==1:
+                comd=mapcom.com(userc,pid)
+            else:
+                comd=mapcom.com(userc,0)
             flightstate=mapcom.send_flightdata()
             tello.send_comd(comd)
             checkoutmap=mapcom.checkalldone()
@@ -103,16 +175,20 @@ def main():
             if isrec:
                 write(sd,imageraw)
             mapui.mapshow(flightstate)
-        
+            # if muitmap==0:
+            #     mapui.mapshow(flightstate)
+            # else:
+            #     mapsand(mapsd,flightstate)
+   
         pydisplay.display(image2surface,flightstate)#pygame飞行界面
 
         #目前对丢帧策略的理解，只要分母不要小于飞机发送回来的最大帧速率则不会产生延迟同时保证帧率
         #例子里的60是不合理的，会多丢弃一半的帧，浪费辽
-        if frame.time_base < 1.0/31:
+        if frame.time_base < 1.0/40:
             if userc[4]==1:
-                time_base = 1.0/31#使用pose稍微保守一点
+                time_base = 1.0/35#使用pose稍微保守一点
             else:
-                time_base = 1.0/31
+                time_base = 1.0/35
         else:
             time_base = frame.time_base
         frame_skip = int((time.time() - start_time)/time_base)

@@ -96,7 +96,7 @@ def draw_map(event,x,y,flags,param):
                 cv2.line(nowimg, (ls[-1][1]-15,ls[-1][2]+15), (ls[-1][1]+15,ls[-1][2]-15), (0,0,0), 2, 4)
                 cv2.putText(nowimg, 'holdon', (ls[len(ls)-1][1]-118,ls[len(ls)-1][2]-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), fontbig)
                 cv2.rectangle(nowimg,(ls[-1][1]-118,ls[-1][2]-40),(ls[len(ls)-1][1]-16,ls[len(ls)-1][2]-12),(255,255,255),1)
-                ls.append([1,ls[len(ls)-1][1],ls[len(ls)-1][2]],0)
+                ls.append([1,ls[len(ls)-1][1],ls[len(ls)-1][2],0])
                 lscom.append([1,time,0,0])
         elif flags==9 and event==1 :#ctrl+左键返航
             if ls!=[] and ls[len(ls)-1][0]!=4 and ls[len(ls)-1][0]!=3 and ls[len(ls)-1][0]!=0 and ls[-1][1]!=0 and ls[-1][2]!=0 and inputing!=True:

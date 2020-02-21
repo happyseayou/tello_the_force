@@ -1,13 +1,61 @@
 #根据opese的数据和tello的图像把画面显示出来添加紧急停机按钮
 import cv2
 import time
-import numpy
+import numpy as np
 import pygame
 from math import atan2, degrees, sqrt,pi,atan
 import csv
 import random
 import pandas as pd 
 
+
+class RollingGraph:
+    """
+        Class designed to draw in an OpenCv window, graph of variables evolving with time.
+        The time is not absolute here, but each new call to method 'new_iter' corresponds to a time step.
+        'new_iter' takes as argument an array of the current variable values  
+    """
+    def __init__(self, window_name="Graph", width=640, height=250, step_width=5, y_min=0, y_max=255, colors=[(0,0,255)], thickness=[2], threshold=None, waitKey=True):
+        """
+            width, height: width and height in pixels of the OpenCv window in which the graph is draw
+            step_width: width in pixels on the x-axis between each 2 consecutive points
+            y_min, y_max : min and max of the variables
+            colors : array of the colors used to draw the variables
+            thickness: array of the thickness of the variable curves
+            waitKey : boolean. In OpenCv, to display a window, we must call cv2.waitKey(). This call can be done by RollingGraph (if True) or by the program who calls RollingGraph (if False)
+
+        """
+        self.window_name = window_name
+        self.width = width
+        self.height = height
+        self.step_width = step_width
+        self.y_min = y_min
+        self.y_max = y_max
+        self.waitKey = waitKey
+        assert len(colors) == len(thickness)
+        self.colors = colors
+        self.thickness = thickness
+        self.iter = 0
+        self.canvas = np.zeros((height,width,3),dtype=np.uint8)
+        self.nb_values = len(colors)
+        self.threshold = threshold
+        
+    def new_iter(self, values):
+        # Values = array of values, same length as colors
+        assert len(values) == self.nb_values
+        self.iter += 1
+        if self.iter > 1:
+            if self.iter * self.step_width >= self.width:
+                self.canvas[:,0:self.step_width,:] = 0
+                self.canvas = np.roll(self.canvas, -self.step_width, axis=1)
+                self.iter -= 1
+            for i in range(self.nb_values):
+                cv2.line(self.canvas,((self.iter-1)*self.step_width,int(self.height-self.prev_values[i]*self.height/(self.y_max-self.y_min))), (self.iter*self.step_width,int(self.height-values[i]*self.height/(self.y_max-self.y_min))), self.colors[i], self.thickness[i]) 
+            if self.threshold:
+                cv2.line(self.canvas,(0,int(self.height-self.threshold*self.height/(self.y_max-self.y_min))), (self.width,int(self.height-self.threshold*self.height/(self.y_max-self.y_min))), (0,255,0), 1) 
+            cv2.imshow(self.window_name, self.canvas)    
+            if self.waitKey: cv2.waitKey(1)
+        self.prev_values = values
 
 class FPS: #这个模块摘自tello_openpose
     def __init__(self):
@@ -78,7 +126,7 @@ class Pydisplay():
     def pygdisplaycv2(self,imsurface):
         #将cv2 frame做一个pygame surface
         imsurface=cv2.resize(imsurface,(640,480))
-        imsurface=numpy.rot90(imsurface,k=-1)
+        imsurface=np.rot90(imsurface,k=-1)
         imsf=pygame.surfarray.make_surface(imsurface)
         imsf = pygame.transform.flip(imsf, False, True)
         return imsf
@@ -584,11 +632,28 @@ class Mapui:
         self.lsdrawe=ls
         self.lspoint=[]
         self.fps=FPS()
-
+        #PID记录
+        self.pidt=1
+        if self.pidt:
+            self.yawpid=RollingGraph(window_name="yawpid",thickness=[1], threshold=125,waitKey=False)
+            self.thropid=RollingGraph(window_name="thropid",thickness=[1], threshold=125,waitKey=False)
+            self.pithpid=RollingGraph(window_name="pithpid",thickness=[1], threshold=125,waitKey=False)
+            self.rollpid=RollingGraph(window_name="rollpid",thickness=[1], threshold=125,waitKey=False)
+        
     def mapshow(self,flightstate):
         img=self.imgraw.copy()#每一帧都是新的
         img=self.drawmap(img,flightstate)
         self.fps.update()
+        #PID调节文件
+        if self.pidt:
+            if flightstate[10] is not None:
+                self.yawpid.new_iter([flightstate[10]+125])
+            if flightstate[9] is not None:
+                self.thropid.new_iter([flightstate[9]*10+125])
+            if flightstate[8] is not None:
+                self.pithpid.new_iter([flightstate[8]+125])
+            if flightstate[13] is not None:
+                self.rollpid.new_iter([flightstate[13]*100+125])
         cv2.imshow('tello',img)
 
     def drawmap(self,img,flightstate):
@@ -597,10 +662,10 @@ class Mapui:
         Scalexy=600/821
         x0=int(self.lsdrawe[0][1]*1280/1600)
         y0=int(self.lsdrawe[0][2]*720/900)
-        x=int(flightstate[19]/Scalexy+x0)
-        y=int(-flightstate[20]/Scalexy+y0)#图片坐标和飞行坐标差一个-号
+        x=int(flightstate[19]/(Scalexy/0.8)+x0)
+        y=int(-flightstate[20]/(Scalexy/0.8)+y0)#图片坐标和飞行坐标差一个-号
         #把飞机画上地图
-        if len(self.lspoint)>=100:
+        if len(self.lspoint)>=50:
             self.lspoint.pop(0)
         self.lspoint.append([x,y])
         for item in self.lspoint:
@@ -671,24 +736,24 @@ class Mapui:
         #if flightstate[3]:
         hud.add(f"opindex {flightstate[3]}")
         #舵量
-        hud.add(f"thr {flightstate[4]}")
-        hud.add(f"pith {flightstate[5]}")
-        hud.add(f"roll {flightstate[6]}")
-        hud.add(f"yaw {flightstate[7]}")
+        hud.add(f"thr {flightstate[4]}",(0,0,255))
+        hud.add(f"pith {flightstate[5]}",(0,0,255))
+        hud.add(f"roll {flightstate[6]}",(0,0,255))
+        hud.add(f"yaw {flightstate[7]}",(0,0,255))
         #姿态位置误差
         #if flightstate[8] and flightstate[9] and flightstate[10] and flightstate[13]:
-        hud.add(f"offdistanc {flightstate[8]:8.1f}")
-        hud.add(f"offheight {flightstate[9]:8.1f}")
-        hud.add(f"offpoint {flightstate[10]:8.1f}")
-        hud.add(f"offroll {flightstate[13]:8.1f}")
+        hud.add(f"offdistanc {flightstate[8]:8.1f}",(0,0,255))
+        hud.add(f"offheight {flightstate[9]:8.1f}",(0,0,255))
+        hud.add(f"offpoint {flightstate[10]:8.1f}",(0,0,255))
+        hud.add(f"offroll {flightstate[13]:8.1f}",(0,0,255))
         hud.add(f"velxy {flightstate[17]:8.1f}")
         hud.add(f"velz {flightstate[18]:8.1f}")
         hud.add(f"wifi {flightstate[12]:8.1f}")
         #if flightstate[19] and flightstate[20] and flightstate[21] and flightstate[24]:
-        hud.add(f"posx {flightstate[19]:8.1f}")
-        hud.add(f"posy {flightstate[20]:8.1f}")
-        hud.add(f"posz {flightstate[21]:8.1f}")
-        hud.add(f"pointyaw {flightstate[24]:8.1f}")
+        hud.add(f"posx {flightstate[19]:8.1f}",(0,0,255))
+        hud.add(f"posy {flightstate[20]:8.1f}",(0,0,255))
+        hud.add(f"posz {flightstate[21]:8.1f}",(0,0,255))
+        hud.add(f"pointyaw {flightstate[24]:8.1f}",(0,0,255))
         hud.add(f"visualstate {flightstate[25]}")
         #if flightstate[14]:
         if flightstate[14]==0:

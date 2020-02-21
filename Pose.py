@@ -6,7 +6,7 @@ import os
 from sys import platform
 import argparse
 #from tello import *
-from UI import FPS
+from UI import FPS ,RollingGraph
 from math import atan2, degrees, sqrt,pi
 import numpy as np
 import time
@@ -155,6 +155,7 @@ def runtest():
         pr = Process(target=read, args=(stack,))
         pr.start()
     lspoint=[]
+    roll=RollingGraph(thickness=[1], threshold=125,waitKey=False)
     while True:
         start_time=time.time()
         ok,frame=video.read()
@@ -187,24 +188,35 @@ def runtest():
                 cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
             if show[7][0]:
                 cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
-            if show[15][0] and show[15][1]:
-                #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
+            # if show[15][0] and show[15][1]:
+            #     #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
+            #     if len(lspoint)>=30:
+            #         lspoint.pop(0)
+            #     lspoint.append([show[15][0],show[15][1]])
+            #     for item in lspoint:
+            #         coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+            #         #coloris=(255,255,255)
+            #         cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
+            # if show[16][0] and show[16][1]:
+            #     #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
+            #     if len(lspoint)>=30:
+            #         lspoint.pop(0)
+            #     lspoint.append([show[16][0],show[16][1]])
+            #     for item in lspoint:
+            #         coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+            #         #coloris=(255,255,255)
+            #         cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
+            if show[0][0]:
+                cv2.circle(frame2, (show[0][0], show[0][1]), 10, (0, 0, 255), -1)
+                cv2.circle(frame2, (320, 240), 20, (0, 0, 255), -1)
                 if len(lspoint)>=30:
                     lspoint.pop(0)
-                lspoint.append([show[15][0],show[15][1]])
+                lspoint.append([show[0][0],show[0][1]])
                 for item in lspoint:
-                    coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                    #coloris=(255,255,255)
+                    #coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                    coloris=(255,255,255)
                     cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
-            if show[16][0] and show[16][1]:
-                #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
-                if len(lspoint)>=30:
-                    lspoint.pop(0)
-                lspoint.append([show[16][0],show[16][1]])
-                for item in lspoint:
-                    coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                    #coloris=(255,255,255)
-                    cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
+                roll.new_iter([show[0][0]-320+125])
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
         fps.display(frame2)
     
