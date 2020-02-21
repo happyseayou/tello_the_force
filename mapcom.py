@@ -55,8 +55,8 @@ class Mapcom:
         self.state=None
         #pid
         self.tpid=0
-        self.pid_yaw=PID(1.5,1,0,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹
-        self.pid_thro=PID(1.5,0.5,0.1,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹,恢复速度有点慢
+        self.pid_yaw=PID(2,1.8,0,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹
+        self.pid_thro=PID(1.5,1.4,0.1,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹,恢复速度有点慢
         self.pid_pith=PID(0.2,0.01,0.2,setpoint=0,output_limits=(-20,20))
         self.pid_roll= PID(1,0,0,setpoint=0,output_limits=(-20,20))
         #读进来的未经处理坐标值
