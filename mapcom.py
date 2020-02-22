@@ -55,8 +55,8 @@ class Mapcom:
         self.state=None
         #pid
         self.tpid=0
-        self.pid_yaw=PID(2,1.8,0,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹
-        self.pid_thro=PID(1.5,1.4,0.1,setpoint=0,output_limits=(-50,50))#准确度还行，就是有点回弹,恢复速度有点慢
+        self.pid_yaw=PID(2,1.8,0,setpoint=0,output_limits=(-50,50))#这套pid目前最佳fps27
+        self.pid_thro=PID(1.5,1.4,0.1,setpoint=0,output_limits=(-50,50))#有点波动
         self.pid_pith=PID(0.2,0.01,0.2,setpoint=0,output_limits=(-20,20))
         self.pid_roll= PID(1,0,0,setpoint=0,output_limits=(-20,20))
         #读进来的未经处理坐标值
@@ -151,7 +151,11 @@ class Mapcom:
             self.offheight=self.posznow-self.nowdo[3]
             #夹角
             anglepoint2y=math.degrees(math.atan2(self.nowdo[1]-self.posxnow,self.nowdo[2]-self.posynow))#目标点与y轴[-180,180]
-            self.offpoint=self.pointyawnow-anglepoint2y#结果为-180~180
+            self.offpoint=self.pointyawnow-anglepoint2y
+            if self.offpoint<=-180:
+                self.offpoint=360+self.offpoint            
+            elif self.offpoint>180:
+                self.offpoint=360-self.offpoint#结果为-180~180
             self.offroll=self.offdistance*math.sin(math.radians(self.offpoint))#选择与off同向pid运输需要注意
 
     def checkop(self):#执行的操作更换器
@@ -223,8 +227,8 @@ class Mapcom:
         com=[0,0,0,0,0]
         if self.isfly==1:
             if self.state==6:#是否悬停正常
-                if self.offdistance<10:#缓冲区大小未知
-                    if self.velxy<3 and abs(self.velz<3):#判断是否静止
+                if self.offdistance<11:#缓冲区大小未知
+                    if self.velxy<1 and abs(self.velz<1):#判断是否静止
                         self.isopsuccessful=1
                         com=[0,0,0,0,0]
                     else:
@@ -237,7 +241,7 @@ class Mapcom:
                         if abs(self.offpoint)<5:#先对准指向
                             com[2]=int(self.pid_pith(-self.offdistance))
                             com[1]=int(self.pid_roll(self.offroll))
-                            com[3]=int(self.pid_thro(self.offheight))
+                            #com[3]=int(self.pid_thro(self.offheight))
                             #com[0]=int(self.pid_yaw(self.offpoint))
                         else:
                             com[0]=int(self.pid_yaw(self.offpoint))
@@ -267,7 +271,7 @@ class Mapcom:
                         if abs(self.offpoint)<5:#先对准指向
                             com[2]=int(self.pid_pith(-self.offdistance))
                             com[1]=int(self.pid_roll(self.offroll))
-                            com[3]=int(self.pid_thro(self.offheight))
+                            #com[3]=int(self.pid_thro(self.offheight))
                             #com[0]=int(self.pid_yaw(self.offpoint))
                         else:
                             com[0]=int(self.pid_yaw(self.offpoint))
@@ -371,7 +375,10 @@ class Mapcom:
                     pass
         
         elif self.userstatemod==0 or self.userstatemod==3:
-            pass
+            if self.isfly==1:
+                if self.state==6:#判断是否正在悬停
+                    if self.istakeoffok==1:#起飞成功更新数据之后
+                        self.flashdata()#更新飞行中数据
         #用户超越控制
         if userc[0]!=0 or userc[1]!=0 or userc[2]!=0 or userc[3]!=0:
             com[0]=userc[3]

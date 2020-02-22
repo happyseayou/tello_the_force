@@ -59,7 +59,7 @@ def nothing(x):
 
 def main():
     isrec=0
-    muitmap=0
+    #muitmap=0
     tello=Tello()
     pydisplay=Pydisplay()
     keyuser=Keyuser()#键盘命令

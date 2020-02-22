@@ -88,6 +88,7 @@ class Pydisplay():
         pygame.mixer.init()
         self.player=player()
         self.preflightstate2=-1
+        self.preindex=-1
 
         if self.isdisplay==1:
             self.screen = pygame.display.set_mode((640, 480), pygame.DOUBLEBUF)#键盘控制封不了类，只能用函数
@@ -164,10 +165,16 @@ class Pydisplay():
                 elif flightstate[25]==1:
                     self.screen.blit(self.pl,(23,11))
                 self.screen.blit(self.redlight,(601,6))
+            if flightstate[2]<20:#pose和键盘
+                if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
+                    self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
+                    self.preflightstate2=flightstate[2]
+            elif flightstate[2]>=20:#map
+                if flightstate[3]!=self.preindex or flightstate[2]!=self.preflightstate2:
+                    self.player.sound(flightstate[2])
+                    self.preindex=flightstate[3]
+                    self.preflightstate2=flightstate[2]
 
-            if flightstate[2]!=self.preflightstate2:#判断当前模式是否与先前的不一样
-                self.player.sound(flightstate[2])#只有不一样才可以播放声音，不然一直叫个不停
-                self.preflightstate2=flightstate[2]
             #文本信息
             textinfo1="电池："+str(format(flightstate[1],'.1f'))
             textinfo2="高度："+str(format(flightstate[11],'.1f'))
