@@ -79,12 +79,13 @@ class Pose:
     def get_kp(self,frame):#返回坐标点的方法返回的是二维数组
         self.datum.cvInputData=frame
         self.opWrapper.emplaceAndPop([self.datum])
-        #out = self.datum.cvOutputData
+        out = self.datum.cvOutputData#直接将画好的传出不需要再用cv2画一次
         xy=[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
         #添加一组获取图片亮度listid[10]
         brightness=self.framebightness(frame)
         try:
             kps = self.datum.poseKeypoints[0]
+            #out=self.datum.cvOutputData
             listid=[0,1,2,3,4,5,6,7,8,10,15,16,17,18]#body_25模型关键点,10为亮度
                 #
            
@@ -105,7 +106,7 @@ class Pose:
                 else:
                     xy[i][0]=xy[i][1]=None 
                     
-        return xy   #xy[i][k]i代表第几个点k代表第几个坐标
+        return xy,out   #xy[i][k]i代表第几个点k代表第几个坐标
     
     def framebightness(self,frame):#获取图片亮度，返回按压
         frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)#灰度图
@@ -167,27 +168,27 @@ def runtest():
         frame2=frame
         #cv2.imshow("raw",frame) 
         if ispose:  
-            show=my_pose.get_kp(frame)
+            show,out=my_pose.get_kp(frame)
             #print(show[7])
             
-            angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
-            angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
-            #if angle567:
-            #print(str(angle234)+' '+str(angle567)+' '+str(show[10][0]))
-            #else:
-            #  print('ooooops')
+            # angle234=angle((show[2][0],show[2][1]),(show[3][0],show[3][1]),(show[4][0],show[4][1]))
+            # angle567=angle((show[7][0],show[7][1]),(show[6][0],show[6][1]),(show[5][0],show[5][1]))
+            # #if angle567:
+            # #print(str(angle234)+' '+str(angle567)+' '+str(show[10][0]))
+            # #else:
+            # #  print('ooooops')
             if show[2][0]:#值判断一个就好
-                cv2.circle(frame2, (show[2][0], show[2][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[2][0], show[2][1]), 10, (0, 0, 255), -1)
             if show[3][0]:
-                cv2.circle(frame2, (show[3][0], show[3][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[3][0], show[3][1]), 10, (0, 0, 255), -1)
             if show[4][0]:
-                cv2.circle(frame2, (show[4][0], show[4][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[4][0], show[4][1]), 10, (0, 0, 255), -1)
             if show[5][0]:#值判断一个就好
-                cv2.circle(frame2, (show[5][0], show[5][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[5][0], show[5][1]), 10, (0, 0, 255), -1)
             if show[6][0]:
-                cv2.circle(frame2, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[6][0], show[6][1]), 10, (0, 0, 255), -1)
             if show[7][0]:
-                cv2.circle(frame2, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
+                cv2.circle(out, (show[7][0], show[7][1]), 10, (0, 0, 255), -1)
             # if show[15][0] and show[15][1]:
             #     #cv2.circle(frame2, (show[0][0], show[0][1]), 35, (0, 0, 255), -1)
             #     if len(lspoint)>=30:
@@ -207,24 +208,23 @@ def runtest():
             #         #coloris=(255,255,255)
             #         cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
             if show[0][0]:
-                cv2.circle(frame2, (show[0][0], show[0][1]), 10, (0, 0, 255), -1)
-                cv2.circle(frame2, (320, 240), 20, (0, 0, 255), -1)
+                cv2.circle(out, (320, 240), 20, (0, 0, 255), -1)
                 if len(lspoint)>=30:
                     lspoint.pop(0)
                 lspoint.append([show[0][0],show[0][1]])
                 for item in lspoint:
                     #coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
                     coloris=(255,255,255)
-                    cv2.circle(frame2,(item[0],item[1]),5,coloris,-1)
+                    cv2.circle(out,(item[0],item[1]),5,coloris,-1)
                 roll.new_iter([show[0][0]-320+125])
         #cv2.putText(frame2, 'love you', (show[0]-70,show[1]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
-        fps.display(frame2)
+        fps.display(out)
     
         if isrec:
-            write(stack,frame2)
+            write(stack,out)
 
-        frame3=cv2.resize(frame2,(960,720))
-        cv2.imshow("raw",frame3) 
+        out=cv2.resize(out,(960,720))
+        cv2.imshow("raw",out) 
         
         #cv2.imshow("1",show[2])
         #print(show[0][0],show[0][1])

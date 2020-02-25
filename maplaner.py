@@ -41,6 +41,29 @@ def draw_map(event,x,y,flags,param):
                 if ls[i+1][0]!=4 and ls[i+1][0]!=1:
                     cv2.arrowedLine(nowimg, (ls[i][1],ls[i][2]), ((ls[i+1][1]+ls[i][1])//2,(ls[i+1][2]+ls[i][2])//2), (0,255,255),2,1,0,0.05)
                     cv2.line(nowimg, ((ls[i+1][1]+ls[i][1])//2,(ls[i+1][2]+ls[i][2])//2), (ls[i+1][1],ls[i+1][2]), (0,255,255), 2, 4)
+        elif flags==33 and event == cv2.EVENT_LBUTTONDBLCLK:#alt+左键双击不旋转go
+            if ls!=[] and ls[len(ls)-1][0]!=4 and inputing!=True:
+                prelist.append(nowimg.copy())
+                if xyi!=[]:
+                    #修正坐标为实际坐标
+                    posx=(x-xyi[0])*Scalexy
+                    posy=(-y+xyi[1])*Scalexy
+                posz=getInput('输入','closeon高度厘米整数数默认110')
+                if not posz.isdigit():
+                    posz=110
+                else:
+                    posz=int(posz)
+                print(posz,type(posz))
+                cv2.circle(nowimg,(x,y),15,(255,255,255),2)
+                cv2.circle(nowimg,(x,y),5,(0,255,255),-1)
+                cv2.putText(nowimg, 'CN', (x+20,y-20), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 0), fontbig)
+                cv2.rectangle(nowimg,(x+20,y-18),(x+60,y-45),(255,255,255),1)
+                ls.append([8,x,y,0])
+                lscom.append([8,posx,posy,posz])
+                i=len(ls)-2
+                if ls[i+1][0]!=4 and ls[i+1][0]!=1:
+                    cv2.arrowedLine(nowimg, (ls[i][1],ls[i][2]), ((ls[i+1][1]+ls[i][1])//2,(ls[i+1][2]+ls[i][2])//2), (0,255,255),2,1,0,0.05)
+                    cv2.line(nowimg, ((ls[i+1][1]+ls[i][1])//2,(ls[i+1][2]+ls[i][2])//2), (ls[i+1][1],ls[i+1][2]), (0,255,255), 2, 4)
         elif event == cv2.EVENT_RBUTTONDBLCLK:#右键双击起飞
             if ls==[] and inputing!=True:
                 #prelist.append(nowimg.copy())

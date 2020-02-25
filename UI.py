@@ -3,7 +3,7 @@ import cv2
 import time
 import numpy as np
 import pygame
-from math import atan2, degrees, sqrt,pi,atan
+from math import atan2, degrees, sqrt,pi,atan,sin,cos,radians
 import csv
 import random
 import pandas as pd 
@@ -128,8 +128,9 @@ class Pydisplay():
         #将cv2 frame做一个pygame surface
         imsurface=cv2.resize(imsurface,(640,480))
         imsurface=np.rot90(imsurface,k=-1)
-        imsf=pygame.surfarray.make_surface(imsurface)
-        imsf = pygame.transform.flip(imsf, False, True)
+        imsurface2=np.fliplr(imsurface)
+        imsf=pygame.surfarray.make_surface(imsurface2)
+        #imsf = pygame.transform.flip(imsf, False, True)
         return imsf
 
     def display(self,image2surface,flightstate):
@@ -386,7 +387,8 @@ class player():
         self.key_mode_25=pygame.mixer.Sound("playsounds\\退出航点模式.wav")
         self.key_mode_26=pygame.mixer.Sound("playsounds\\等待开始.wav")
         self.key_mode_27=pygame.mixer.Sound("playsounds\\暂停任务.wav")
-        
+        self.key_mode_28=pygame.mixer.Sound("playsounds\\靠近下一个航点.wav")
+
     def sound(self,mode):
         #if pygame.mixer.get_busy()==False:
         if mode == 0:
@@ -446,6 +448,8 @@ class player():
             self.key_mode_26.play()
         elif mode == 27:
             self.key_mode_27.play()
+        elif mode == 28:
+            self.key_mode_28.play()
         
 
 class UID():#显示类
@@ -486,17 +490,17 @@ class UID():#显示类
             #if kp[i][0] and kp[i][1]:
                 #cv2.circle(image, (kp[i][0], kp[i][1]), 3, (0, 0, 255), -1)
         #画线
-        color=(0,255,0)
-        thickness = 3
-        lineType = 8
-        linep=[[0,1],[0,18],[0,17],[1,2],[1,8],[1,5],[2,3],[3,4],[5,6],[6,7]]
-        for i in range(len(linep)):
-            x1=kp[linep[i][0]][0]
-            y1=kp[linep[i][0]][1]
-            x2=kp[linep[i][1]][0]
-            y2=kp[linep[i][1]][1]
-            if x1 and x2 and y1 and y2:
-                cv2.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
+        # color=(0,255,0)
+        # thickness = 3
+        # lineType = 8
+        # linep=[[0,1],[0,18],[0,17],[1,2],[1,8],[1,5],[2,3],[3,4],[5,6],[6,7]]
+        # for i in range(len(linep)):
+        #     x1=kp[linep[i][0]][0]
+        #     y1=kp[linep[i][0]][1]
+        #     x2=kp[linep[i][1]][0]
+        #     y2=kp[linep[i][1]][1]
+        #     if x1 and x2 and y1 and y2:
+        #         cv2.line(image, (x1, y1), (x2,y2 ), color, thickness, lineType)
         #这里有点绕，就是标记出线段的id然后遍历所有io带入对应的(x1,y1)(x2,y2)
         #以下是跟踪箭头部分
         x11=320#起点
@@ -678,6 +682,18 @@ class Mapui:
         for item in self.lspoint:
             coloris=(random.randint(0,255),random.randint(0,255),random.randint(0,255))
             cv2.circle(img,(item[0],item[1]),5,coloris,-1)
+        #画飞机指向箭头
+        if flightstate[14]==0:
+            arrowed2len=40
+            arrowedstart=(int(x+arrowed2len*sin(-radians(flightstate[23]))),int(y+arrowed2len*cos(-radians(flightstate[23]))))
+            arrowedpoint=(int(x-arrowed2len*sin(-radians(flightstate[23]))),int(y-arrowed2len*cos(-radians(flightstate[23]))))
+            cv2.arrowedLine(img, arrowedstart, arrowedpoint, (255,0,0),2,1,0,0.05)
+        else:
+            arrowed2len=40
+            arrowedstart=(int(x+arrowed2len*sin(-radians(flightstate[24]))),int(y+arrowed2len*cos(-radians(flightstate[24]))))
+            arrowedpoint=(int(x-arrowed2len*sin(-radians(flightstate[24]))),int(y-arrowed2len*cos(-radians(flightstate[24]))))
+            cv2.arrowedLine(img, arrowedstart, arrowedpoint, (255,0,0),2,1,0,0.05)
+        
         return img
 
 
@@ -753,6 +769,7 @@ class Mapui:
         hud.add(f"offheight {flightstate[9]:8.1f}",(0,0,255))
         hud.add(f"offpoint {flightstate[10]:8.1f}",(0,0,255))
         hud.add(f"offroll {flightstate[13]:8.1f}",(0,0,255))
+        hud.add(f"offorward {flightstate[22]:8.1f}",(0,0,255))
         hud.add(f"velxy {flightstate[17]:8.1f}")
         hud.add(f"velz {flightstate[18]:8.1f}")
         hud.add(f"wifi {flightstate[12]:8.1f}")

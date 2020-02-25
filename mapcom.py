@@ -56,9 +56,12 @@ class Mapcom:
         #pid
         self.tpid=0
         self.pid_yaw=PID(2,1.8,0,setpoint=0,output_limits=(-50,50))#这套pid目前最佳fps27
-        self.pid_thro=PID(1.5,1.4,0.1,setpoint=0,output_limits=(-50,50))#有点波动
+        self.pid_thro=PID(1.5,1.4,1,setpoint=0,output_limits=(-50,50))#有点波动
         self.pid_pith=PID(0.2,0.01,0.2,setpoint=0,output_limits=(-20,20))
         self.pid_roll= PID(1,0,0,setpoint=0,output_limits=(-20,20))
+        #pid closeon，不修正指向
+        self.pidfoward=PID(1.8,1.8,2,setpoint=0,output_limits=(-14,14))
+        self.pidroll=PID(1.8,1.8,2,setpoint=0,output_limits=(-14,14))
         #读进来的未经处理坐标值
         self.heightraw=None 
         self.posxraw=None 
@@ -82,6 +85,7 @@ class Mapcom:
         self.offheight=0.0
         self.offpoint=0.0
         self.offroll=0.0
+        self.offforword=0.0
 
     def reset(self):#飞行结束后清理到初始，重新进入模式后可以使用,不能self.checkdone,不能pid
         self.listgo=None
@@ -134,6 +138,7 @@ class Mapcom:
         self.offheight=0.0
         self.offpoint=0.0
         self.offroll=0.0
+        self.offforword=0.0
 
     def flashdata(self):
         #变换到起飞点的坐标
@@ -146,7 +151,7 @@ class Mapcom:
         self.posznow=self.poszraw-self.posz0+self.height0*10
         self.pointyawnow=self.pointyawraw-self.pointyaw0
         
-        if self.nowop==2 or self.nowop==3:
+        if self.nowop==2 or self.nowop==3 or self.nowop==8:
             self.offdistance=math.sqrt((self.posxnow-self.nowdo[1])**2+(self.posynow-self.nowdo[2])**2)
             self.offheight=self.posznow-self.nowdo[3]
             #夹角
@@ -157,6 +162,7 @@ class Mapcom:
             elif self.offpoint>180:
                 self.offpoint=360-self.offpoint#结果为-180~180
             self.offroll=self.offdistance*math.sin(math.radians(self.offpoint))#选择与off同向pid运输需要注意
+            self.offforword=self.offdistance*math.cos(math.radians(self.offpoint))
 
     def checkop(self):#执行的操作更换器
         self.startcomtime=time.time()
@@ -257,6 +263,29 @@ class Mapcom:
             #print(com)
         return com
 
+    def closeop(self):
+        com=[0,0,0,0,0]
+        if self.isfly==1:
+            if self.state==6:#是否悬停正常
+                if self.offdistance<11:#缓冲区大小未知
+                    if self.velxy<1 and abs(self.velz<1):#判断是否静止
+                        self.isopsuccessful=1
+                        com=[0,0,0,0,0]
+                    else:
+                        com=[0,0,0,0,0]
+                
+                else:
+                    if abs(self.offheight)<12:
+                        #不修正指向
+                        com[2]=int(self.pidfoward(-self.offforword))          
+                        com[1]=int(self.pidroll(self.offroll))           
+                    else:
+                        com[3]=int(self.pid_thro(self.offheight))
+            else:
+                com=[0,0,0,0,0]
+            #print(com)
+        return com
+
     def backhome(self):
         com=[0,0,0,0,0]
         if self.isfly==1:
@@ -287,7 +316,7 @@ class Mapcom:
         if self.isfly==1:
             if self.state==6:#是否悬停正常
                 if self.velxy<1 and abs(self.velz<1):#判断是否静止
-                    if abs(self.pointyawnow)<2:
+                    if abs(self.pointyawnow)<1:
                         self.isopsuccessful=1
                         com[4]=4
                         self.checkdone=1
@@ -341,12 +370,12 @@ class Mapcom:
                 # self.nowdo=[6,0,0,0]
                 self.flymode=6
     #定义飞行指令发送,在main循环中调用
-    def com(self,userc,pid):
+    def com(self,userc):
         ok=self.checkfile()
         self.userstate(userc)
         com=[0,0,0,0,0]#每轮循环归零
-        if self.tpid==1:
-            self.pidtuning(pid)
+        # if self.tpid==1:
+        #     self.pidtuning(pid)
         if self.userstatemod==2:
             if ok==1:#有文件才可以，没有文件不给玩
                 self.checkop()
@@ -361,6 +390,9 @@ class Mapcom:
                     self.flymode=self.nowop
                 elif self.nowop==2:
                     com=self.goop()
+                    self.flymode=self.nowop
+                elif self.nowop==8:
+                    com=self.closeop()
                     self.flymode=self.nowop
                 elif self.nowop==3:
                     com=self.backhome()
@@ -389,15 +421,15 @@ class Mapcom:
         self.comd=com        
         return com
 
-    def pidtuning(self,value):
-        #value=[[p,i,d,down,up]  yaw
-        #       [p,i,d,down,up]  thro
-        #       [p,i,d,down,up]  pith
-        #       [p,i,d,down,up]] roll
-        self.pid_yaw=PID(value[0][0],value[0][1],value[0][2],setpoint=0,output_limits=(value[0][3],value[0][4]))
-        self.pid_thro=PID(value[1][0],value[1][1],value[1][2],setpoint=0,output_limits=(value[1][3],value[1][4]))
-        self.pid_pith=PID(value[2][0],value[2][1],value[2][2],setpoint=0,output_limits=(value[2][3],value[2][4]))
-        self.pid_roll= PID(value[3][0],value[3][1],value[3][2],setpoint=0,output_limits=(value[3][3],value[3][4]))
+    # def pidtuning(self,value):
+    #     #value=[[p,i,d,down,up]  yaw
+    #     #       [p,i,d,down,up]  thro
+    #     #       [p,i,d,down,up]  pith
+    #     #       [p,i,d,down,up]] roll
+    #     self.pid_yaw=PID(value[0][0],value[0][1],value[0][2],setpoint=0,output_limits=(value[0][3],value[0][4]))
+    #     self.pid_thro=PID(value[1][0],value[1][1],value[1][2],setpoint=0,output_limits=(value[1][3],value[1][4]))
+    #     self.pid_pith=PID(value[2][0],value[2][1],value[2][2],setpoint=0,output_limits=(value[2][3],value[2][4]))
+    #     self.pid_roll= PID(value[3][0],value[3][1],value[3][2],setpoint=0,output_limits=(value[3][3],value[3][4]))
 
     def readflightdata(self,data):#定义从无人机获取遥测数据
         self.battery=data[0]
@@ -445,6 +477,8 @@ class Mapcom:
         flightdata[12]=self.wifi
         if self.offroll:
             flightdata[13]=self.offroll
+        if self.offforword:
+            flightdata[22]=self.offforword
         #姿态位置
         flightdata[14]=self.userstatemod
         flightdata[15]=self.anlroll
@@ -457,8 +491,8 @@ class Mapcom:
             flightdata[20]=self.posynow
         if self.posznow:
             flightdata[21]=self.posznow
-        flightdata[22]=0
-        flightdata[23]=0
+        #flightdata[22]=0
+        flightdata[23]=self.pointyawraw
         if self.pointyawnow:
             flightdata[24]=self.pointyawnow
         flightdata[25]=self.state
