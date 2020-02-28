@@ -47,7 +47,7 @@ v3.20
     两只手组合动作切换飞行模式：普通跟踪，锁定距离，平行跟随  
     左右手靠近右左耳朵可以触发降落或手掌降落
 上图：  
-![pose](https://github.com/happyseayou/tello_the_force/tree/master/media/github/pose.png)   
+![pose](media/github/pose.png)   
   
 ## 2.键盘控制
 键盘控制级别虽高，需要将鼠标焦点放在“没卵用窗口”上  
@@ -57,20 +57,20 @@ WSADQE控制前后左右等四个通道，shift ctrl控制上下
 f11 f12全屏和退出全屏  
 m进入和退出map模式，b暂停map模式，t进入和退出pose模式  
 上图：  
-![inf](https://github.com/happyseayou/tello_the_force/tree/master/media/github/inf.png)  
+![inf](media/github/inf.png)  
   
 ## 3.map航点飞行  
 基于飞机回传的mvo数据，精度还行，自动返航误差在30cm内  
 上图：  
-![map](https://github.com/happyseayou/tello_the_force/tree/master/media/github/map.png)  
+![map](media/github/map.png)  
   
 可以将飞行后的轨迹画出来  
 上图：  
-![mapdrawer](https://github.com/happyseayou/tello_the_force/tree/master/media/github/mapdrawer.png)  
+![mapdrawer](media/github/mapdrawer.png)  
 数据的存储格式：  
 上图：  
-![csv](https://github.com/happyseayou/tello_the_force/tree/master/media/github/csv.png)  
-![pos](https://github.com/happyseayou/tello_the_force/tree/master/media/github/pos.png)  
+![csv](media/github/csv.png)  
+![pos](media/github/pos.png)  
   
   
 
