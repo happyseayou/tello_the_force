@@ -20,6 +20,8 @@ import math
 import pandas as pd 
 from simple_pid import PID
 import time
+import datetime
+import csv
 
 class Mapcom:
 
@@ -60,8 +62,8 @@ class Mapcom:
         self.pid_pith=PID(0.2,0.01,0.2,setpoint=0,output_limits=(-20,20))
         self.pid_roll= PID(1,0,0,setpoint=0,output_limits=(-20,20))
         #pid closeon，不修正指向
-        self.pidfoward=PID(1.8,1.8,2,setpoint=0,output_limits=(-14,14))
-        self.pidroll=PID(1.8,1.8,2,setpoint=0,output_limits=(-14,14))
+        self.pidfoward=PID(1.8,1.8,2.5,setpoint=0,output_limits=(-14,14))
+        self.pidroll=PID(1.8,1.8,2.5,setpoint=0,output_limits=(-14,14))
         #读进来的未经处理坐标值
         self.heightraw=None 
         self.posxraw=None 
@@ -86,6 +88,15 @@ class Mapcom:
         self.offpoint=0.0
         self.offroll=0.0
         self.offforword=0.0
+        #坐标数据写入文件
+        #pathpos='./map/pos_%s.csv'% datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
+        self.posdatefile=None
+        self.posdatewriter=None
+        #self.posdatewriter.writerow(["time","x","y","z"])
+        self.preposxnow=100 
+        self.preposynow=100
+        self.preposznow=100
+
 
     def reset(self):#飞行结束后清理到初始，重新进入模式后可以使用,不能self.checkdone,不能pid
         self.listgo=None
@@ -139,6 +150,14 @@ class Mapcom:
         self.offpoint=0.0
         self.offroll=0.0
         self.offforword=0.0
+        #坐标数据写入文件
+        #pathpos='./map/pos_%s.csv'% datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
+        self.posdatefile=None
+        self.posdatewriter=None
+        #self.posdatewriter.writerow(["time","x","y","z"])
+        self.preposxnow=100 
+        self.preposynow=100
+        self.preposznow=100
 
     def flashdata(self):
         #变换到起飞点的坐标
@@ -496,12 +515,40 @@ class Mapcom:
         if self.pointyawnow:
             flightdata[24]=self.pointyawnow
         flightdata[25]=self.state
+        #将坐标数据写入文件
+        self.posloger(flightdata)
         return flightdata
+
+    def posloger(self,flightdata):
+        #检查文件是否有打开
+        if self.posdatefile is None:
+            try:
+                pathpos='./map/pos_%s.csv'% datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
+                self.posdatefile=open(pathpos,'w',newline='')
+                self.posdatewriter=csv.writer(self.posdatefile)
+                self.posdatewriter.writerow(["time","x","y","z"])
+            except:
+                print('初始化航点记录失败，无法记录航点')
+                self.posdatefile=None
+        if self.posdatefile is not None:
+            offposx=abs(flightdata[19]-self.preposxnow)
+            offposy=abs(flightdata[20]-self.preposynow)
+            offposz=abs(flightdata[21]-self.preposznow)
+            if offposx>=0.3 and offposy>=0.3 and offposz>=0.3:#不是原地悬停
+                #写入数据
+                index=int(time.time())
+                self.posdatewriter.writerow([index,flightdata[19],flightdata[20],flightdata[21]])
+                #重新pre值
+                self.preposxnow=flightdata[19] 
+                self.preposynow=flightdata[20]
+                self.preposznow=flightdata[21]
 
     def checkalldone(self):#检查是否完成降落，是则退出模式
         if self.checkdone==1:
             ok=1
+            self.posdatefile.close()#先关闭航点记录文件
             self.reset()#初始化并且自动退出map模式
+            
         else:
             ok=0
         return ok
