@@ -7,6 +7,20 @@ import tkinter.messagebox
 import random
 
 
+ls=[]
+lscom=[]
+xyi=[]
+pointxy=[]#用来显示的，飞行坐标
+pointxydrawer=[]#用来画的，画面坐标
+inputing=False
+img = np.zeros([900,1600,3], np.uint8)
+guide1='chose a point and right clickdouble as a zero point'
+cv2.putText(img, guide1, (50,350), cv2.FONT_HERSHEY_SIMPLEX, 1.8, (255, 255, 255), 2)
+preimg=None  
+nowimg=img
+prelist=[]
+
+#cv2.createTrackbar('mode','maplaner',0,1,nothing)
 
 def draw_map(event,x,y,flags,param):
     #print(flags,event)
@@ -224,24 +238,10 @@ def message_askyesno(title,Message):
 def nothing(value):
     pass
 
-
-ls=[]
-lscom=[]
-xyi=[]
-pointxy=[]#用来显示的，飞行坐标
-pointxydrawer=[]#用来画的，画面坐标
-inputing=False
-img = np.zeros([900,1600,3], np.uint8)
-guide1='chose a point and right clickdouble as a zero point'
-cv2.putText(img, guide1, (50,350), cv2.FONT_HERSHEY_SIMPLEX, 1.8, (255, 255, 255), 2)
-preimg=None  
-nowimg=img
-prelist=[]
 cv2.namedWindow('maplaner')
 cv2.setMouseCallback('maplaner',draw_map)
 raiseerror=0
 bgimg=cv2.imread('./media/bg.jpg')
-#cv2.createTrackbar('mode','maplaner',0,1,nothing)
 while(1):
     cv2.imshow('maplaner',nowimg)
     if cv2.waitKey(100) & 0xFF == 27:
