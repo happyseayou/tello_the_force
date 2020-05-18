@@ -11,7 +11,7 @@ from UI import FPS,UID,Keyuser,Pydisplay,Mapui
 from math import atan2, degrees, sqrt,pi,atan
 from Pose import Pose
 from Com import*
-from Mapcom import Mapcom
+from mapcom import Mapcom
 #import profile
 import numpy as np
 import gc
